@@ -1,15 +1,15 @@
 # Relevo — Sistema de gestión de ausencias (dependencia judicial, Colombia)
 
-MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurrencia y privacidad. Escalable a app web Python en VPS propio (dominio autorizado en la red de la Rama Judicial).
+MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurrencia y privacidad. App web Python desplegada en VPS propio (dominio autorizado en la red de la Rama Judicial).
 
 ## Reglas críticas (6)
 
-1. **Inmutabilidad**: todos los DTOs/modelos con `@dataclass(frozen=True)`. Nunca mutar; retornar copias.
-2. **Errores**: usar `Result[T, E]` (`Success`/`Failure`), no `try/except` anidados ni excepciones para flujo de control.
+1. **Inmutabilidad**: modelos de dominio y DTOs preferiblemente inmutables. Modelos de persistencia (SQLAlchemy 2.0) con tipado estricto `Mapped`.
+2. **Errores**: usar `Result[T, E]` (`Success`/`Failure`), no `try/except` anidados ni excepciones para flujo de control en lógica de negocio.
 3. **Logging**: `get_logger(__name__)`, nunca `logging.getLogger` directo.
-4. **Privacidad (RN5)**: el dato sensible (nombre, motivo) jamás se expone públicamente. La capa pública solo ve estados derivados (`DISPONIBLE`/`OCUPADO`/`EXCEPCIONAL`).
-5. **Dominio puro**: `src/relevo/` sin acoplamiento a Google/Trello → portable al VPS para la v1.
-6. **Verificación**: todo cambio pasa `pytest -x` + `ruff check` + `mypy`. Tests cubren Success y Failure.
+4. **Privacidad (RN5)**: el dato sensible (nombre, motivo) jamás se expone públicamente. La capa pública (`/disponibilidad`) solo ve estados derivados (`DISPONIBLE`/`OCUPADO`/`EXCEPCIONAL`).
+5. **Arquitectura**: Separación clara entre `src/relevo` (festivos), `src/app/models` (persistencia), `src/app/domain` (reglas de negocio) y `src/app/routes` (FastAPI).
+6. **Verificación**: todo cambio pasa `pytest -x` + `ruff check`. Tests cubren Success y Failure.
 
 ## Reglas de negocio (contrato)
 
@@ -22,47 +22,42 @@ MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurren
 | RN6 | Respaldo: acordar cobertura con un compañero antes de pedir permiso |
 | RN7 | Festivos de Colombia (Ley Emiliani) + días hábiles reales |
 
-## Navegación
+## Stack Tecnológico (v1)
 
-| Necesito... | Ver |
-|-------------|-----|
-| Análisis del MVP, fallas, datos, paso a paso | `docs/plannings/PLAN_01_2026-05-26_MVP_AUSENCIAS.md` |
-| Resumen de sprints | `docs/sprints/` |
-| Auditorías de calidad | `docs/validate/` |
-| Capa de cálculo (festivos, días hábiles) | `src/relevo/` |
+| Capa | Tecnología |
+|------|-----------|
+| Framework | FastAPI + SQLAlchemy 2.0 (Modern Type Mapping) |
+| Seguridad | bcrypt (passwords) + itsdangerous (signed session cookies) |
+| BD | SQLite (persistencia local con volúmenes Docker) |
+| Despliegue | Docker (multi-stage) + EasyPanel + gosu (non-root) |
 
 ## Comandos
 
 ```powershell
-# Entorno
+# Desarrollo Local
 .venv\Scripts\activate
-# Verificación
 .venv\Scripts\python.exe -m pytest -x
 .venv\Scripts\python.exe -m ruff check src tests
-.venv\Scripts\python.exe -m mypy
+
+# Docker (Versión Prueba)
+docker-compose -f docker-compose.dev.yml up --build
+
+# Inicialización (Seed)
+.venv\Scripts\python.exe -m src.app.seed
 ```
 
 ## Estado actual
 
-- **Sprint 01 ✅**: módulo de festivos colombianos (`src/relevo/`) — 18 tests, mypy strict.
-- **Sprint 02+ 🔜**: app web v1 en VPS — ver `docs/plannings/PLAN_02_*.md`.
+- **Milestone v1 ✅**: Back-end completo, motor de reglas, seguridad y contenedorización.
+- **Próximo Milestone (v2) 🔜**: Front-end (HTMX/Jinja2) + Panel de Coordinación avanzado.
 
-### Stack app web v1
+### Historial de Sprints
 
-| Capa | Tecnología |
-|------|-----------|
-| Framework | FastAPI + Jinja2 + HTMX |
-| BD / ORM | SQLite + SQLAlchemy 2.x |
-| Auth | Sesiones firmadas (`itsdangerous`) |
-| Despliegue | Ubuntu + EasyPanel + Dockerfile |
-
-### SPECs app web (pendientes)
-
-| SPEC | Descripción |
-|------|-------------|
-| SPEC-V1-B1 | Modelos BD (Empleado, Solicitud) |
-| SPEC-V1-B2 | Dominio: saldos (RN2) + concurrencia (RN3/RN4) |
-| SPEC-V1-B3 | Auth: login, sesión, roles |
-| SPEC-V1-B4 | Endpoints solicitudes |
-| SPEC-V1-B5 | Vista de disponibilidad sin PII (RN5) |
-| SPEC-V1-B6 | Dockerfile + despliegue EasyPanel |
+| Sprint | Objetivo | Estado |
+|--------|----------|--------|
+| SPRINT_01 | Capa de festivos colombianos (`relevo.festivos`) | ✅ Done |
+| SPRINT_02 | Base de datos y lógica de dominio | ✅ Done |
+| SPRINT_03 | Autenticación y Seguridad (Auth Layer) | ✅ Done |
+| SPRINT_04 | Endpoints de solicitudes (Business Flow) | ✅ Done |
+| SPRINT_05 | Vista de disponibilidad anónima (RN5) | ✅ Done |
+| SPRINT_06 | Contenedorización y Guía de Despliegue | ✅ Done |
