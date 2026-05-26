@@ -4,11 +4,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - relevo_data:/data
+      - ./data:/app/data
+      - ./logs:/app/logs
     environment:
-      - DATABASE_URL=sqlite:////data/relevo.db
-      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - DATABASE_URL=sqlite:////app/data/database/relevo.db
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-me}
+      - TZ=America/Bogota
     restart: unless-stopped
-
-volumes:
-  relevo_data:
