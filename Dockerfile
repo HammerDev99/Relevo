@@ -18,7 +18,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY pyproject.toml README-deploy.md ./
-# Dummy structure for pip install
+# Dummy structure for pip install metadata resolution
 RUN mkdir -p src/app src/relevo && touch src/app/__init__.py src/relevo/__init__.py
 
 # Instalar dependencias con cache mount
@@ -48,6 +48,7 @@ RUN useradd -m -u 1000 -s /bin/bash relevo
 
 # Configuración de entorno
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app:/app/src
 ENV DATABASE_URL=sqlite:////app/data/database/relevo.db
 ENV TZ=America/Bogota
 
@@ -65,3 +66,6 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -f http://localhost:8000/ || exit 1
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
+
+# Fallback CMD
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

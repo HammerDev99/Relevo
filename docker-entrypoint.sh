@@ -8,11 +8,13 @@ set -e
 mkdir -p data/database logs
 
 # Fix ownership en directorios que pueden ser volúmenes montados por root
-# UID 1000 corresponde al usuario 'relevo' creado en el Dockerfile
 chown -R relevo:relevo data logs
 
+# Asegurar que el código fuente sea descubrible por Python
+# /app está en el path por defecto, pero /app/src permite importar 'relevo' y 'app' directamente
+export PYTHONPATH=$PYTHONPATH:/app:/app/src
+
 # Inicializar/Migrar base de datos si es necesario (Seed para MVP)
-# En una app real usaríamos Alembic, aquí usamos el script de seed para asegurar admin inicial
 echo "==> Inicializando base de datos..."
 gosu relevo python -m src.app.seed
 
