@@ -1,17 +1,23 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from src.app.database import init_db
-from src.app.routes import auth
+from src.app.routes import auth, solicitudes
 
-app = FastAPI(title="Relevo API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize DB
+    init_db()
+    yield
+    # Shutdown: Clean up if needed
+
+app = FastAPI(title="Relevo API", lifespan=lifespan)
 
 # Incluir rutas
 app.include_router(auth.router)
+app.include_router(solicitudes.router)
 
 @app.get("/")
 def read_root():
     return {"message": "Relevo API v1"}
-
-# Opcional: inicializar BD al arrancar (simplificado para MVP)
-@app.on_event("startup")
-def on_startup():
-    init_db()
