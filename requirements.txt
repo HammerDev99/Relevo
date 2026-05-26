@@ -1,0 +1,3 @@
+# Dependencias de runtime del MVP Relevo
+# Instalar:  py -m venv .venv && .venv\Scripts\pip install -r requirements.txt
+holidays>=0.97

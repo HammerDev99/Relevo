@@ -1,0 +1,22 @@
+# Entorno virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Artefactos generados
+*.ics
+dist/
+build/
+
+# IDE / SO
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
