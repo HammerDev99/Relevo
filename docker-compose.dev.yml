@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - DATABASE_URL=sqlite:////app/data/database/relevo.db
+      - SECRET_KEY=dev-secret-key-testing-only
+      - TZ=America/Bogota
