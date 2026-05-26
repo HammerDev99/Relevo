@@ -1,4 +1,5 @@
-from typing import Any, Optional
+from typing import Any
+
 import bcrypt
 from fastapi import Depends, HTTPException, Request, status
 from itsdangerous import URLSafeTimedSerializer
@@ -23,7 +24,7 @@ def create_session_token(data: dict[str, Any]) -> str:
     """Crea un token firmado para la sesión."""
     return str(serializer.dumps(data))
 
-def get_session_data(token: str) -> Optional[dict[str, Any]]:
+def get_session_data(token: str) -> dict[str, Any] | None:
     """Decodifica y valida un token de sesión."""
     try:
         # Expiración configurada en segundos

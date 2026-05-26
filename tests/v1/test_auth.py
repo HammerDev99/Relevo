@@ -1,49 +1,69 @@
 import pytest
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-from src.app.auth import get_password_hash, verify_password, create_session_token, get_empleado_actual, get_coordinador
-from src.app.models import Empleado
+from sqlalchemy import StaticPool, create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from src.app.auth import (
+    get_coordinador,
+    get_empleado_actual,
+    get_password_hash,
+    verify_password,
+)
 from src.app.database import Base, get_db
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from src.app.models import Empleado
+from src.app.routes import auth
 
-# Mock app for testing dependencies
-app = FastAPI()
+# Create a test app instance
+test_app = FastAPI()
+test_app.include_router(auth.router)
 
-@app.get("/test-auth")
-def test_auth_route(empleado: Empleado = Depends(get_empleado_actual)):
+@test_app.get("/check-auth")
+def check_auth_route(empleado: Empleado = Depends(get_empleado_actual)):
     return {"id": empleado.id, "rol": empleado.rol}
 
-@app.get("/test-coordinacion")
-def test_coord_route(empleado: Empleado = Depends(get_coordinador)):
+@test_app.get("/check-coordinacion")
+def check_coord_route(empleado: Empleado = Depends(get_coordinador)):
     return {"is_admin": True}
+
+# In-memory engine shared by everything in the test process
+test_engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_db():
+    Base.metadata.create_all(bind=test_engine)
+    yield
+    Base.metadata.drop_all(bind=test_engine)
 
 @pytest.fixture
 def db_session():
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     
-    # Override get_db dependency
     def override_get_db():
         try:
             yield db
         finally:
             pass
-    app.dependency_overrides[get_db] = override_get_db
+            
+    test_app.dependency_overrides[get_db] = override_get_db
     
     try:
         yield db
     finally:
+        # Clear tables but keep connection for StaticPool
+        for table in reversed(Base.metadata.sorted_tables):
+            db.execute(table.delete())
+        db.commit()
         db.close()
-        Base.metadata.drop_all(bind=engine)
-        app.dependency_overrides.clear()
+        test_app.dependency_overrides.clear()
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    return TestClient(test_app)
 
 def test_password_hashing():
     pwd = "secret-password"
@@ -52,7 +72,7 @@ def test_password_hashing():
     assert verify_password(pwd, h) is True
     assert verify_password("wrong", h) is False
 
-def test_login_and_auth_dependency(db_session: Session, client: TestClient):
+def test_login_route(db_session: Session, client: TestClient):
     pwd = "password123"
     h = get_password_hash(pwd)
     emp = Empleado(
@@ -64,21 +84,36 @@ def test_login_and_auth_dependency(db_session: Session, client: TestClient):
     db_session.add(emp)
     db_session.commit()
 
-    # Manual token creation for testing dependency
-    token = create_session_token({"user_id": emp.id, "rol": emp.rol})
+    # Test login
+    response = client.post("/login", data={"correo": "juan@test.com", "password": "password123"})
+    assert response.status_code == 200
+    assert "session" in client.cookies
+    assert response.json()["rol"] == "empleado"
+
+    # Test login wrong password
+    response = client.post("/login", data={"correo": "juan@test.com", "password": "wrong"})
+    assert response.status_code == 401
+
+def test_auth_dependency_with_client(db_session: Session, client: TestClient):
+    pwd = "password123"
+    h = get_password_hash(pwd)
+    emp = Empleado(
+        nombre="Juan", 
+        correo="juan@test.com", 
+        password_hash=h, 
+        rol="empleado"
+    )
+    db_session.add(emp)
+    db_session.commit()
+
+    # Login to get cookie
+    client.post("/login", data={"correo": "juan@test.com", "password": "password123"})
     
-    # Test with valid cookie
-    client.cookies.set("session", token)
-    response = client.get("/test-auth")
+    response = client.get("/check-auth")
     assert response.status_code == 200
     assert response.json()["id"] == emp.id
 
-    # Test with invalid cookie
-    client.cookies.set("session", "invalid-token")
-    response = client.get("/test-auth")
-    assert response.status_code == 401
-
-def test_role_authorization(db_session: Session, client: TestClient):
+def test_role_authorization_with_client(db_session: Session, client: TestClient):
     # Regular employee
     emp_regular = Empleado(
         nombre="Regular", 
@@ -97,14 +132,20 @@ def test_role_authorization(db_session: Session, client: TestClient):
     db_session.commit()
 
     # Regular tries to access coordination
-    token_reg = create_session_token({"user_id": emp_regular.id, "rol": emp_regular.rol})
-    client.cookies.set("session", token_reg)
-    response = client.get("/test-coordinacion")
+    client.post("/login", data={"correo": "reg@test.com", "password": "h"})
+    response = client.get("/check-coordinacion")
     assert response.status_code == 403
 
     # Coordinator accesses coordination
-    token_coord = create_session_token({"user_id": emp_coord.id, "rol": emp_coord.rol})
-    client.cookies.set("session", token_coord)
-    response = client.get("/test-coordinacion")
+    client.post("/login", data={"correo": "coord@test.com", "password": "h"})
+    response = client.get("/check-coordinacion")
     assert response.status_code == 200
     assert response.json()["is_admin"] is True
+
+def test_logout(client: TestClient):
+    client.cookies.set("session", "some-token")
+    response = client.get("/logout")
+    assert response.status_code == 200
+    # Check that the Set-Cookie header is present and expires the session
+    set_cookie = response.headers.get("set-cookie")
+    assert "session=;" in set_cookie or 'session=""' in set_cookie or "Max-Age=0" in set_cookie
