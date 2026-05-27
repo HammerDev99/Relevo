@@ -2,7 +2,8 @@ import calendar
 from datetime import date
 
 import streamlit as st
-from services.disponibilidad_service import DisponibilidadService
+
+from app.gui.services.disponibilidad_service import DisponibilidadService
 
 
 def show():

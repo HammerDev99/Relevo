@@ -1,5 +1,6 @@
 import streamlit as st
-from services.coordinacion_service import CoordinacionService
+
+from app.gui.services.coordinacion_service import CoordinacionService
 
 
 def show():
@@ -19,8 +20,14 @@ def show():
             
             with col1:
                 st.write(f"👤 **Empleado:** {s['empleado_nombre']}")
-                st.write(f"Tipo: `{s['tipo'].upper()}` | 📅 {s['fecha_inicio']} al {s['fecha_fin']}")
-                st.write(f"⏱️ {s['dias_habiles']} días hábiles | 🤝 Respaldo: {s['respaldo_nombre']}")
+                st.write(
+                    f"Tipo: `{s['tipo'].upper()}` | "
+                    f"📅 {s['fecha_inicio']} al {s['fecha_fin']}"
+                )
+                st.write(
+                    f"⏱️ {s['dias_habiles']} días hábiles | "
+                    f"🤝 Respaldo: {s['respaldo_nombre']}"
+                )
                 
                 if s["es_excepcion"]:
                     st.warning("⚠️ **TRÁMITE DE EXCEPCIÓN**")

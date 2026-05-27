@@ -3,13 +3,13 @@ from typing import Any
 import httpx
 import streamlit as st
 
-from .auth_service import AuthService
+from app.gui.services.auth_service import AuthService
 
 
 class CoordinacionService:
     """Servicio para acciones administrativas (Panel de Coordinación)."""
     
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://api:8000"):
         self.base_url = base_url
         self.auth = AuthService(base_url)
 

@@ -1,8 +1,9 @@
 from datetime import date
 
 import streamlit as st
-from gui import session_keys
-from services.solicitud_service import SolicitudService
+
+from app.gui import session_keys
+from app.gui.services.solicitud_service import SolicitudService
 
 
 def show():

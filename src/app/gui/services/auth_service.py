@@ -1,14 +1,14 @@
-
 import httpx
 import streamlit as st
 
-from ..gui import session_keys
+from app.gui import session_keys
 
 
 class AuthService:
     """Servicio para gestionar la autenticación con el backend FastAPI."""
     
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://api:8000"):
+        # En Docker, el servicio api es accesible por su nombre
         self.base_url = base_url
 
     def login(self, email: str, password: str) -> bool:

@@ -2,11 +2,13 @@ import os
 import sys
 
 import streamlit as st
-from gui import session_keys
-from services.auth_service import AuthService
 
-# Añadir el path actual para que los imports funcionen correctamente
+# Añadir el path actual para que los imports funcionen correctamente (Safety hack)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+
+from app.gui import session_keys
+from app.gui.services.auth_service import AuthService
 
 # Configuración de página (Professional Style)
 st.set_page_config(
