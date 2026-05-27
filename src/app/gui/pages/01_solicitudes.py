@@ -8,6 +8,21 @@ from app.gui.services.solicitud_service import SolicitudService
 
 def show() -> None:
     st.title("📑 Mis Solicitudes")
+    
+    # S14-C3: Req 3 - Inyectar CSS para diseño móvil responsivo
+    st.markdown("""
+        <style>
+        /* Forzar columnas a apilarse en móviles */
+        @media (max-width: 640px) {
+            [data-testid="stHorizontalBlock"] {
+                flex-direction: column !important;
+            }
+        }
+        /* Mejorar legibilidad de tarjetas */
+        .stActionButton { margin-top: 10px; }
+        </style>
+    """, unsafe_allow_html=True)
+
     service = SolicitudService()
     auth = service.auth
     
@@ -15,8 +30,8 @@ def show() -> None:
     me = auth.get_me()
     mis_grupos = me.get("grupo_ids", []) if me else []
     
-    # --- Formulario de Nueva Solicitud ---
-    with st.expander("➕ Nueva Solicitud", expanded=False), st.form("nueva_solicitud"):
+    # --- Formulario de Nueva Solicitud (S14-C3: Sin st.form para permitir reactividad) ---
+    with st.expander("➕ Nueva Solicitud", expanded=False):
         tipo = st.selectbox("Tipo de Ausencia", ["vacaciones", "permiso"])
         
         st.caption(
@@ -27,13 +42,17 @@ def show() -> None:
         col1, col2 = st.columns(2)
         with col1:
             f_inicio = st.date_input("Fecha Inicio", min_value=date.today())
+        
         with col2:
             if tipo == "vacaciones":
-                # S13-C2: Proyectar 22 días calendario por defecto
-                f_fin_default = f_inicio + timedelta(days=21)
-                f_fin = st.date_input("Fecha Fin", value=f_fin_default, min_value=f_inicio)
+                # S14-C3: Req 8 - Cálculo automático de 22 días calendario
+                f_fin_calc = f_inicio + timedelta(days=21)
+                st.info(f"Fecha Fin estimada: **{f_fin_calc.isoformat()}**")
+                st.caption("(22 días calendario proyectados)")
+                f_fin = f_fin_calc
             else:
-                f_fin = st.date_input("Fecha Fin", min_value=f_inicio)
+                # S14-C3: Req 6 - Por defecto el mismo día para permisos
+                f_fin = st.date_input("Fecha Fin", value=f_inicio, min_value=f_inicio)
         
         usuarios = service.listar_empleados()
         mi_email = st.session_state.get(session_keys.USER_EMAIL)
@@ -61,9 +80,7 @@ def show() -> None:
             help="Obligatorio para permisos o excepciones"
         )
         
-        submit = st.form_submit_button("Enviar Solicitud")
-        
-        if submit:
+        if st.button("Enviar Solicitud", type="primary"):
             if not respaldo_nombre:
                 st.error("Debes seleccionar un compañero de respaldo")
             elif tipo == "permiso" and not justificacion:
