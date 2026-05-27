@@ -21,6 +21,21 @@ def validar_solicitud(db: Session, nueva: Solicitud) -> Result[Solicitud, str]:
     if not respaldo or not respaldo.activo:
         return Failure("El compañero de respaldo no está activo")
 
+    # S14-C2: Req 4 - Duplicidad de días
+    # Verificar si el usuario ya tiene una solicitud que se traslape con este periodo
+    query_superposicion = select(func.count(Solicitud.id)).where(
+        Solicitud.empleado_id == nueva.empleado_id,
+        Solicitud.estado.in_(["aprobada", "pendiente"]),
+        Solicitud.fecha_inicio <= nueva.fecha_fin,
+        Solicitud.fecha_fin >= nueva.fecha_inicio
+    )
+    if nueva.id:
+        query_superposicion = query_superposicion.where(Solicitud.id != nueva.id)
+        
+    superposicion = db.scalar(query_superposicion) or 0
+    if superposicion > 0:
+        return Failure("Ya tienes una solicitud en curso para ese mismo periodo")
+
     # Pre-calculo de días según tipo (S13-C2)
     if not nueva.dias_habiles:
         if nueva.tipo == "vacaciones":
@@ -33,6 +48,12 @@ def validar_solicitud(db: Session, nueva: Solicitud) -> Result[Solicitud, str]:
             if isinstance(res_dias, Failure):
                 return Failure(res_dias.error)
             nueva.dias_habiles = res_dias.value
+            
+            # S14-C2: Req 7 - Límite individual de 3 días para permisos
+            if nueva.dias_habiles > 3:
+                return Failure(
+                    "La duración de un permiso individual no puede superar los 3 días hábiles"
+                )
 
     # 2. Validar Saldo (RN2)
     if nueva.tipo == "vacaciones":

@@ -215,3 +215,63 @@ def test_validar_respaldo_inactivo(db_session: Session) -> None:
     result = validar_solicitud(db_session, nueva)
     assert isinstance(result, Failure)
     assert "El compañero de respaldo no está activo" in result.error
+
+
+def test_validar_permiso_limite_individual(db_session: Session) -> None:
+    g = Grupo(nombre="G", min_presentes=0)
+    emp1 = Empleado(nombre="Emp1", correo="emp1@test.com", password_hash="h", activo=True)
+    resp = Empleado(nombre="Resp", correo="resp@test.com", password_hash="h", activo=True)
+    emp1.grupos.append(g)
+    resp.grupos.append(g)
+    db_session.add_all([g, emp1, resp])
+    db_session.commit()
+
+    # Intenta pedir 4 días de permiso (1 de jun a 5 de jun son 5 días hábiles)
+    nueva = Solicitud(
+        empleado_id=emp1.id,
+        tipo="permiso",
+        fecha_inicio=date(2026, 6, 1),
+        fecha_fin=date(2026, 6, 5),
+        respaldo_id=resp.id,
+        justificacion="viaje"
+    )
+
+    result = validar_solicitud(db_session, nueva)
+    assert isinstance(result, Failure)
+    assert "no puede superar los 3 días hábiles" in result.error
+
+
+def test_validar_duplicidad_dias(db_session: Session) -> None:
+    g = Grupo(nombre="G", min_presentes=0)
+    emp1 = Empleado(nombre="Emp1", correo="emp1@test.com", password_hash="h", activo=True)
+    resp = Empleado(nombre="Resp", correo="resp@test.com", password_hash="h", activo=True)
+    emp1.grupos.append(g)
+    resp.grupos.append(g)
+    db_session.add_all([g, emp1, resp])
+    db_session.commit()
+
+    # Ya tiene una solicitud aprobada
+    s1 = Solicitud(
+        empleado_id=emp1.id,
+        tipo="vacaciones",
+        fecha_inicio=date(2026, 6, 1),
+        fecha_fin=date(2026, 6, 10),
+        dias_habiles=7,
+        estado="aprobada",
+    )
+    db_session.add(s1)
+    db_session.commit()
+
+    # Intenta pedir permiso para el 5 de junio (traslapa)
+    nueva = Solicitud(
+        empleado_id=emp1.id,
+        tipo="permiso",
+        fecha_inicio=date(2026, 6, 5),
+        fecha_fin=date(2026, 6, 5),
+        respaldo_id=resp.id,
+        justificacion="cita"
+    )
+
+    result = validar_solicitud(db_session, nueva)
+    assert isinstance(result, Failure)
+    assert "Ya tienes una solicitud" in result.error
