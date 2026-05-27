@@ -31,7 +31,7 @@ case "${RELEVO_MODE:-api}" in
     
   gui)
     echo "==> Iniciando Relevo GUI (Streamlit :8501)..."
-    exec gosu relevo streamlit run src/app/gui/app.py \
+    exec gosu relevo streamlit run src/app/gui/portal.py \
         --server.port=8501 \
         --server.address=0.0.0.0 \
         --server.headless=true \

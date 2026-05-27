@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -10,7 +9,7 @@ class SolicitudBase(BaseModel):
     fecha_fin: date
     respaldo_id: int
     es_excepcion: bool = False
-    justificacion: Optional[str] = None
+    justificacion: str | None = None
 
     model_config = ConfigDict(frozen=True, from_attributes=True)
 
@@ -25,12 +24,12 @@ class SolicitudRead(SolicitudBase):
     dias_habiles: int
     estado: str
     creada_en: datetime
-    procesada_en: Optional[datetime] = None
-    procesada_por_id: Optional[int] = None
+    procesada_en: datetime | None = None
+    procesada_por_id: int | None = None
     
     # Campos adicionales para la GUI (Flattened)
-    empleado_nombre: Optional[str] = None
-    respaldo_nombre: Optional[str] = None
+    empleado_nombre: str | None = None
+    respaldo_nombre: str | None = None
 
 
 class SolicitudProcesar(BaseModel):
