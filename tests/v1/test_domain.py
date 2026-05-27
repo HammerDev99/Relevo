@@ -275,3 +275,42 @@ def test_validar_duplicidad_dias(db_session: Session) -> None:
     result = validar_solicitud(db_session, nueva)
     assert isinstance(result, Failure)
     assert "Ya tienes una solicitud" in result.error
+
+
+def test_validar_vacaciones_permisos_mismo_mes(db_session: Session) -> None:
+    """SPEC-S15-C1: Validar que un empleado puede pedir vacaciones y permisos en el mismo mes sin conflicto."""
+    g = Grupo(nombre="G", min_presentes=0)
+    emp1 = Empleado(nombre="Emp1", correo="emp1@test.com", password_hash="h", activo=True)
+    resp = Empleado(nombre="Resp", correo="resp@test.com", password_hash="h", activo=True)
+    emp1.grupos.append(g)
+    resp.grupos.append(g)
+    db_session.add_all([g, emp1, resp])
+    db_session.commit()
+
+    # Vacaciones en junio (5 días)
+    s1 = Solicitud(
+        empleado_id=emp1.id,
+        tipo="vacaciones",
+        fecha_inicio=date(2026, 6, 1),
+        fecha_fin=date(2026, 6, 5),
+        dias_habiles=5,
+        estado="aprobada",
+        respaldo_id=resp.id,
+    )
+    db_session.add(s1)
+    db_session.commit()
+
+    # Permiso en el mismo mes (2 días, no traslapa con vacaciones)
+    nueva = Solicitud(
+        empleado_id=emp1.id,
+        tipo="permiso",
+        fecha_inicio=date(2026, 6, 15),
+        fecha_fin=date(2026, 6, 16),
+        dias_habiles=2,
+        respaldo_id=resp.id,
+        justificacion="cita médica"
+    )
+
+    result = validar_solicitud(db_session, nueva)
+    # Debe ser Success porque no hay traslape de fechas y ambos saldos son independientes
+    assert isinstance(result, Success)
