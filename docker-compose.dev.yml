@@ -1,5 +1,5 @@
 services:
-  app:
+  api:
     build: .
     ports:
       - "8000:8000"
@@ -7,6 +7,22 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     environment:
+      - RELEVO_MODE=api
       - DATABASE_URL=sqlite:////app/data/database/relevo.db
       - SECRET_KEY=dev-secret-key-testing-only
       - TZ=America/Bogota
+
+  gui:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - RELEVO_MODE=gui
+      - DATABASE_URL=sqlite:////app/data/database/relevo.db
+      - SECRET_KEY=dev-secret-key-testing-only
+      - TZ=America/Bogota
+    depends_on:
+      - api

@@ -11,17 +11,35 @@ mkdir -p data/database logs
 chown -R relevo:relevo data logs
 
 # Asegurar que el código fuente sea descubrible por Python
-# /app está en el path por defecto, pero /app/src permite importar 'relevo' y 'app' directamente
 export PYTHONPATH=$PYTHONPATH:/app:/app/src
 
-# Inicializar/Migrar base de datos si es necesario (Seed para MVP)
-echo "==> Inicializando base de datos..."
-gosu relevo python -m src.app.seed
+# --- Selección de Modo (RELEVO_MODE) ---
 
-# Iniciar la aplicación
-echo "==> Iniciando Relevo API (uvicorn :8000)..."
-exec gosu relevo uvicorn src.app.main:app \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --log-level info \
-    --access-log
+case "${RELEVO_MODE:-api}" in
+  api)
+    # Inicializar/Migrar base de datos si es necesario (Solo en modo API para evitar race conditions)
+    echo "==> Inicializando base de datos (Modo API)..."
+    gosu relevo python -m src.app.seed
+
+    echo "==> Iniciando Relevo API (uvicorn :8000)..."
+    exec gosu relevo uvicorn src.app.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --log-level info \
+        --access-log
+    ;;
+    
+  gui)
+    echo "==> Iniciando Relevo GUI (Streamlit :8501)..."
+    exec gosu relevo streamlit run src/app/gui/app.py \
+        --server.port=8501 \
+        --server.address=0.0.0.0 \
+        --server.headless=true \
+        --browser.gatherUsageStats=false
+    ;;
+
+  *)
+    echo "ERROR: RELEVO_MODE debe ser 'api' o 'gui'"
+    exit 1
+    ;;
+esac
