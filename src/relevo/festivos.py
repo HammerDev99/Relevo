@@ -61,3 +61,9 @@ def dias_habiles(inicio: date, fin: date) -> Result[int, str]:
         "Días hábiles entre %s y %s: %d", inicio.isoformat(), fin.isoformat(), conteo
     )
     return Success(conteo)
+
+
+def es_festivo(fecha: date) -> bool:
+    """Verifica si una fecha específica es festivo en Colombia."""
+    feriados = holidays.country_holidays("CO", years=fecha.year, language="es")
+    return fecha in feriados

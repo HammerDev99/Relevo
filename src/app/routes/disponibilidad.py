@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Solicitud
 from app.schemas.disponibilidad import DisponibilidadRead
+from relevo.festivos import es_festivo
 
 router = APIRouter(prefix="/disponibilidad", tags=["disponibilidad"])
 
@@ -39,22 +40,33 @@ def consultar_disponibilidad(
     for dia in range(1, num_dias + 1):
         actual = date(anio, mes, dia)
         ausentes = [s for s in solicitudes if s.fecha_inicio <= actual <= s.fecha_fin]
-        
+
         count = len(ausentes)
         estado = "DISPONIBLE"
-        
+        razon = None
+
+        # SPEC-S15-C4: Identificar festivos y fines de semana
+        es_finde = actual.weekday() >= 5  # 5=Sábado, 6=Domingo
+        es_festivo_col = es_festivo(actual)
+
+        if es_festivo_col:
+            razon = "Festivo"
+        elif es_finde:
+            razon = "Fin de semana"
+
         if count >= 2:
             estado = "EXCEPCIONAL"
         elif count == 1:
             # Si hay uno solo, revisamos si es excepción o estándar.
-            # Según RN3, el cupo estándar es 1. 
+            # Según RN3, el cupo estándar es 1.
             # Para la vista pública, si hay 1 ausente, el cupo estándar está OCUPADO.
             # Se requiere tramitar como excepción si se quiere ese mismo día.
             estado = "OCUPADO"
-            
+
         resultado.append(DisponibilidadRead(
             fecha=actual,
-            estado=estado
+            estado=estado,
+            razon=razon
         ))
         
     return resultado

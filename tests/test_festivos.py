@@ -7,7 +7,7 @@ from datetime import date
 
 import pytest
 
-from relevo.festivos import festivos_de_anio
+from relevo.festivos import es_festivo, festivos_de_anio
 from relevo.models import Festivo
 from relevo.result import Failure, Success
 
@@ -57,3 +57,15 @@ def test_festivo_es_inmutable() -> None:
 def test_festivo_to_dict_serializa_fecha_iso() -> None:
     festivo = Festivo(fecha=date(2026, 12, 25), nombre="Navidad")
     assert festivo.to_dict() == {"fecha": "2026-12-25", "nombre": "Navidad"}
+
+
+def test_es_festivo_navidad() -> None:
+    """SPEC-S15-C4: Test de verificación de festivos."""
+    assert es_festivo(date(2026, 12, 25)) is True  # Navidad
+    assert es_festivo(date(2026, 1, 1)) is True  # Año Nuevo
+
+
+def test_es_festivo_dia_normal() -> None:
+    """SPEC-S15-C4: Test de verificación de días no festivos."""
+    assert es_festivo(date(2026, 1, 15)) is False  # Día normal
+    assert es_festivo(date(2026, 6, 10)) is False  # Día normal

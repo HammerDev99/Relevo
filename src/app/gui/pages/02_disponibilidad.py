@@ -47,10 +47,13 @@ def show() -> None:
 
     # --- Obtener Datos ---
     datos = service.consultar(anio, mes_index)
-    
+
     if not datos:
         st.warning("No se pudieron cargar los datos de disponibilidad.")
         return
+
+    # SPEC-S15-C4: Crear mapa con información completa (estado + razon)
+    mapa_datos = {d["fecha"]: d for d in datos}
 
     # --- Renderizar Calendario (Grid) ---
     # SPEC-S15-C2: Calendario iniciando en Domingo
@@ -70,8 +73,6 @@ def show() -> None:
     total_slots = num_dias + offset_domingo
     filas = total_slots // 7 + (1 if total_slots % 7 != 0 else 0)
 
-    mapa_datos = {d["fecha"]: d["estado"] for d in datos}
-
     current_day = 1
     for f in range(filas):
         cols = st.columns(7)
@@ -79,25 +80,33 @@ def show() -> None:
             idx = f * 7 + d
             if offset_domingo <= idx < (offset_domingo + num_dias):
                 fecha_str = date(anio, mes_index, current_day).isoformat()
-                estado = mapa_datos.get(fecha_str, "DISPONIBLE")
-                
-                # Colores
-                if estado == "DISPONIBLE":
-                    bg_color = "#28a745"
-                elif estado == "OCUPADO":
-                    bg_color = "#ffd700"
+                dato = mapa_datos.get(fecha_str, {"estado": "DISPONIBLE", "razon": None})
+                estado = dato["estado"]
+                razon = dato.get("razon")
+
+                # SPEC-S15-C4: No pintar festivos ni fines de semana
+                # Si es festivo o fin de semana, mostrar en gris sin color de estado
+                if razon in ["Festivo", "Fin de semana"]:
+                    bg_color = "#e9ecef"
+                    txt_color = "#6c757d"
                 else:
-                    bg_color = "#dc3545"
-                
-                txt_color = "white" if estado != "OCUPADO" else "black"
-                
+                    # Colores normales para días hábiles
+                    if estado == "DISPONIBLE":
+                        bg_color = "#28a745"
+                    elif estado == "OCUPADO":
+                        bg_color = "#ffd700"
+                    else:
+                        bg_color = "#dc3545"
+
+                    txt_color = "white" if estado != "OCUPADO" else "black"
+
                 content = f"""
                     <div style="
-                        background-color: {bg_color}; 
-                        color: {txt_color}; 
-                        padding: 10px; 
-                        text-align: center; 
-                        border-radius: 5px; 
+                        background-color: {bg_color};
+                        color: {txt_color};
+                        padding: 10px;
+                        text-align: center;
+                        border-radius: 5px;
                         margin: 2px;
                         font-weight: bold;
                         border: 1px solid #ddd;
