@@ -55,23 +55,28 @@ def main() -> None:
         
         # Definición de páginas
         pg_solicitudes = st.Page(
-            "pages/01_solicitudes.py", 
-            title="Mis Solicitudes", 
+            "pages/01_solicitudes.py",
+            title="Mis Solicitudes",
             icon="📑"
         )
         pg_disponibilidad = st.Page(
-            "pages/02_disponibilidad.py", 
-            title="Disponibilidad", 
+            "pages/02_disponibilidad.py",
+            title="Disponibilidad",
             icon="📅"
         )
         pg_coordinacion = st.Page(
-            "pages/03_coordinacion.py", 
-            title="Panel Control", 
+            "pages/03_coordinacion.py",
+            title="Panel Control",
             icon="🛡️"
+        )
+        pg_perfil = st.Page(
+            "pages/04_perfil.py",
+            title="Mi Perfil",
+            icon="👤"
         )
 
         # Filtrar por rol
-        pages = [pg_solicitudes, pg_disponibilidad]
+        pages = [pg_solicitudes, pg_disponibilidad, pg_perfil]
         if user_role == "coordinacion":
             pages.append(pg_coordinacion)
 

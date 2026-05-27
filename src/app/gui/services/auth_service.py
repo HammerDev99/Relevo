@@ -86,3 +86,22 @@ class AuthService:
         if token:
             return {"Cookie": f"session={token}"}
         return {}
+
+    @log_gui_action("AuthService")
+    def change_password(self, current_password: str, new_password: str) -> bool:
+        """SPEC-S14-C4: Cambia la contraseña del usuario actual."""
+        try:
+            headers = self.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.patch(
+                    "/usuarios/me/password",
+                    json={
+                        "current_password": current_password,
+                        "new_password": new_password
+                    },
+                    headers=headers
+                )
+                return response.status_code == 200
+        except Exception as e:
+            st.error(f"Error al cambiar contraseña: {str(e)}")
+            return False
