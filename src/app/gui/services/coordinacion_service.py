@@ -15,24 +15,28 @@ class CoordinacionService:
         self.auth = AuthService(base_url)
 
     @log_gui_action("CoordinacionService")
-    def listar_pendientes(self) -> list[dict[str, Any]]:
-        """Obtiene todas las solicitudes pendientes."""
+    def listar_todas(self) -> list[dict[str, Any]]:
+        """Obtiene todas las solicitudes del sistema (Audit Log)."""
         try:
             headers = self.auth.get_auth_headers()
             with httpx.Client(base_url=self.base_url) as client:
-                response = client.get("/coordinacion/solicitudes/pendientes", headers=headers)
+                response = client.get("/coordinacion/solicitudes", headers=headers)
                 if response.status_code == 200:
                     return cast(list[dict[str, Any]], response.json())
-                elif response.status_code == 403:
-                    st.error("No tienes permisos de coordinación.")
                 return []
         except Exception as e:
-            st.error(f"Error al listar pendientes: {str(e)}")
+            st.error(f"Error al listar solicitudes: {str(e)}")
             return []
 
     @log_gui_action("CoordinacionService")
+    def listar_pendientes(self) -> list[dict[str, Any]]:
+        """DEPRECATED: Ahora se usa autogestión, pero mantenemos por compatibilidad."""
+        todas = self.listar_todas()
+        return [s for s in todas if s["estado"] == "pendiente"]
+
+    @log_gui_action("CoordinacionService")
     def procesar(self, solicitud_id: int, estado: str) -> bool:
-        """Aprueba o rechaza una solicitud."""
+        """Anula o cambia el estado de una solicitud."""
         try:
             headers = self.auth.get_auth_headers()
             with httpx.Client(base_url=self.base_url) as client:
@@ -42,7 +46,7 @@ class CoordinacionService:
                     headers=headers
                 )
                 if response.status_code == 200:
-                    st.success(f"Solicitud {estado} correctamente.")
+                    st.success(f"Solicitud marcada como {estado}.")
                     return True
                 else:
                     err = response.json().get("detail", "Error al procesar")
@@ -50,4 +54,75 @@ class CoordinacionService:
                     return False
         except Exception as e:
             st.error(f"Error de conexión: {str(e)}")
+            return False
+
+    # --- Gestión de Usuarios ---
+
+    @log_gui_action("CoordinacionService")
+    def listar_usuarios(self) -> list[dict[str, Any]]:
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.get("/coordinacion/usuarios", headers=headers)
+                if response.status_code == 200:
+                    return cast(list[dict[str, Any]], response.json())
+                return []
+        except Exception as e:
+            st.error(f"Error al listar usuarios: {str(e)}")
+            return []
+
+    @log_gui_action("CoordinacionService")
+    def actualizar_usuario(self, usuario_id: int, data: dict[str, Any]) -> bool:
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.patch(
+                    f"/coordinacion/usuarios/{usuario_id}",
+                    json=data,
+                    headers=headers
+                )
+                return response.status_code == 200
+        except Exception:
+            return False
+
+    # --- Gestión de Grupos ---
+
+    @log_gui_action("CoordinacionService")
+    def listar_grupos(self) -> list[dict[str, Any]]:
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.get("/coordinacion/grupos", headers=headers)
+                if response.status_code == 200:
+                    return cast(list[dict[str, Any]], response.json())
+                return []
+        except Exception:
+            return []
+
+    @log_gui_action("CoordinacionService")
+    def crear_grupo(self, nombre: str, min_presentes: int) -> bool:
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.post(
+                    "/coordinacion/grupos",
+                    json={"nombre": nombre, "min_presentes": min_presentes},
+                    headers=headers
+                )
+                return response.status_code == 200
+        except Exception:
+            return False
+
+    @log_gui_action("CoordinacionService")
+    def actualizar_grupo(self, grupo_id: int, data: dict[str, Any]) -> bool:
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.patch(
+                    f"/coordinacion/grupos/{grupo_id}",
+                    json=data,
+                    headers=headers
+                )
+                return response.status_code == 200
+        except Exception:
             return False

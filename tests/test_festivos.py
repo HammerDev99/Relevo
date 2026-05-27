@@ -44,7 +44,7 @@ def test_festivos_no_entero_falla() -> None:
 
 
 def test_festivos_bool_falla() -> None:
-    resultado = festivos_de_anio(True)  # type: ignore[arg-type]
+    resultado = festivos_de_anio(True)
     assert isinstance(resultado, Failure)
 
 

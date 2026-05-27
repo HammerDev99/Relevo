@@ -53,6 +53,25 @@ class AuthService:
                 del st.session_state[key]
         st.rerun()
 
+    @log_gui_action("AuthService")
+    def get_me(self) -> dict[str, Any] | None:
+        """Obtiene el perfil del usuario actual."""
+        try:
+            headers = self.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                # Necesitamos un endpoint /me o similar. 
+                # Por ahora podemos buscar en /usuarios por correo si no hay /me
+                response = client.get("/usuarios", headers=headers)
+                if response.status_code == 200:
+                    usuarios = cast(list[dict[str, Any]], response.json())
+                    email = st.session_state.get(session_keys.USER_EMAIL)
+                    for u in usuarios:
+                        if u["correo"] == email:
+                            return u
+                return None
+        except Exception:
+            return None
+
     @property
     def is_authenticated(self) -> bool:
         return cast(bool, st.session_state.get(session_keys.IS_AUTHENTICATED, False))

@@ -1,6 +1,6 @@
 from app.auth import get_password_hash
 from app.database import SessionLocal, init_db
-from app.models import Empleado
+from app.models import Empleado, Grupo
 
 
 def seed() -> None:
@@ -20,43 +20,64 @@ def seed() -> None:
         )
         db.add(admin)
 
-    # 2. Lista de empleados reales (TODOS con rol 'empleado')
-    empleados_data = [
-        ("JORGE", "jorge@test.com", "jorge123"),
-        ("YESENIA", "yesenia@test.com", "yesenia123"),
-        ("FABIAN", "fabian@test.com", "fabian123"),
-        ("BRIGITH", "brigith@test.com", "brigith123"),
-        ("DANIELA", "daniela@test.com", "daniela123"),
-        ("JACKSON", "jackson@test.com", "jackson123"),
-        ("FLOR", "flor@test.com", "flor123"),
-        ("AMERICA", "america@test.com", "america123"),
-        ("NELLY", "nelly@test.com", "nelly123"),
-        ("HECTOR", "hector@test.com", "hector123"),
-        ("DANIEL", "daniel@test.com", "daniel123"),
-    ]
+    # 2. Definición de Grupos (PLAN_05)
+    grupos_data = {
+        "G1: Comunicaciones y Atención": 2,
+        "G2: Fichas EJPMS": 2,
+        "G3: Reparto Const. y Penal": 2,
+        "G4: Notificaciones y Archivo": 1,
+    }
     
-    print("Sincronizando empleados de la oficina...")
+    grupos_db = {}
+    for nombre, min_p in grupos_data.items():
+        g = db.query(Grupo).filter_by(nombre=nombre).first()
+        if not g:
+            print(f"Creando grupo: {nombre}")
+            g = Grupo(nombre=nombre, min_presentes=min_p)
+            db.add(g)
+        else:
+            g.min_presentes = min_p # Asegurar parámetros
+        grupos_db[nombre] = g
+
+    # 3. Lista de empleados reales (TODOS con rol 'empleado')
+    # Mapeo de grupos: nombre -> lista de nombres de grupos
+    empleados_mapping = {
+        "JORGE": ["G3: Reparto Const. y Penal"],
+        "YESENIA": ["G3: Reparto Const. y Penal"],
+        "FABIAN": ["G4: Notificaciones y Archivo"],
+        "BRIGITH": ["G3: Reparto Const. y Penal"], # Asignada a G3 por defecto
+        "DANIELA": ["G3: Reparto Const. y Penal"],
+        "JACKSON": ["G2: Fichas EJPMS"],
+        "FLOR": ["G1: Comunicaciones y Atención"],
+        "AMERICA": ["G2: Fichas EJPMS"],
+        "NELLY": ["G1: Comunicaciones y Atención"],
+        "HECTOR": ["G1: Comunicaciones y Atención", "G4: Notificaciones y Archivo"], # Multi-grupo
+        "DANIEL": ["G2: Fichas EJPMS"],
+    }
     
-    for nombre, correo, password in empleados_data:
-        existente = db.query(Empleado).filter_by(correo=correo).first()
-        if not existente:
+    print("Sincronizando empleados y grupos...")
+    
+    for nombre, grp_nombres in empleados_mapping.items():
+        correo = f"{nombre.lower()}@test.com"
+        password = f"{nombre.lower()}123"
+        
+        user = db.query(Empleado).filter_by(correo=correo).first()
+        if not user:
             print(f"Creando usuario empleado: {nombre}")
-            nuevo = Empleado(
+            user = Empleado(
                 nombre=nombre,
                 correo=correo,
                 password_hash=get_password_hash(password),
-                rol="empleado" # Todos son empleados
+                rol="empleado"
             )
-            db.add(nuevo)
-        else:
-            # Asegurar que si existían antes, ahora tengan rol empleado
-            if existente.rol != "empleado" and existente.correo != admin_correo:
-                existente.rol = "empleado"
-                print(f"Normalizando rol de {nombre} a empleado.")
+            db.add(user)
+        
+        # Asignar grupos
+        user.grupos = [grupos_db[gn] for gn in grp_nombres]
     
     db.commit()
     db.close()
-    print("Seed de oficina (limpio) completado.")
+    print("Seed de oficina (Autogestión V3) completado.")
 
 if __name__ == "__main__":
     seed()

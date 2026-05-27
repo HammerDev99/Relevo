@@ -15,10 +15,19 @@ class UsuarioBase(BaseModel):
 class UsuarioRead(UsuarioBase):
     id: int
     creado_en: datetime
+    grupo_ids: list[int] = []
 
 
 class UsuarioLogin(BaseModel):
     correo: EmailStr
     password: str
+
+    model_config = ConfigDict(frozen=True)
+
+
+class UsuarioUpdate(BaseModel):
+    rol: str | None = None
+    activo: bool | None = None
+    grupo_ids: list[int] | None = None
 
     model_config = ConfigDict(frozen=True)

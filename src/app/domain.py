@@ -21,13 +21,18 @@ def validar_solicitud(db: Session, nueva: Solicitud) -> Result[Solicitud, str]:
     if not respaldo or not respaldo.activo:
         return Failure("El compañero de respaldo no está activo")
 
-    # Pre-calculo de días hábiles si no vienen
+    # Pre-calculo de días según tipo (S13-C2)
     if not nueva.dias_habiles:
-        res_dias = dias_habiles(nueva.fecha_inicio, nueva.fecha_fin)
-        if isinstance(res_dias, Failure):
-            return Failure(res_dias.error)
-        # We can't mutate frozen dataclasses, but Solicitud is a SQLAlchemy model (mutable)
-        nueva.dias_habiles = res_dias.value
+        if nueva.tipo == "vacaciones":
+            # Días calendario (sin saltar festivos)
+            conteo = (nueva.fecha_fin - nueva.fecha_inicio).days + 1
+            nueva.dias_habiles = conteo
+        else:
+            # Días hábiles para permisos
+            res_dias = dias_habiles(nueva.fecha_inicio, nueva.fecha_fin)
+            if isinstance(res_dias, Failure):
+                return Failure(res_dias.error)
+            nueva.dias_habiles = res_dias.value
 
     # 2. Validar Saldo (RN2)
     if nueva.tipo == "vacaciones":
@@ -64,44 +69,48 @@ def validar_solicitud(db: Session, nueva: Solicitud) -> Result[Solicitud, str]:
                 f"Pedido: {nueva.dias_habiles}"
             )
 
-    # 3. Validar Concurrencia (RN3/RN4)
-    actual = nueva.fecha_inicio
-    while actual <= nueva.fecha_fin:
-        ausentes = (
-            db.scalars(
-                select(Solicitud).where(
+    # 3. Validar Concurrencia por Grupo (S13-C1)
+    empleado = db.get(Empleado, nueva.empleado_id)
+    if not empleado:
+        return Failure("Empleado no encontrado")
+    
+    if not empleado.grupos:
+        return Failure("El empleado no pertenece a ningún grupo de trabajo")
+
+    for grupo in empleado.grupos:
+        # N = total miembros activos del grupo
+        miembros_ids = [m.id for m in grupo.miembros if m.activo]
+        total_miembros = len(miembros_ids)
+        # Cupo es la cantidad máxima de ausentes permitidos
+        cupo_normal = max(0, total_miembros - grupo.min_presentes)
+        cupo_max = cupo_normal + 1 # S13-C3: Una excepción permitida
+        
+        actual = nueva.fecha_inicio
+        while actual <= nueva.fecha_fin:
+            # Contar ausentes en este grupo para esta fecha (aprobadas)
+            ausentes_count = db.scalar(
+                select(func.count(Solicitud.id)).where(
                     Solicitud.estado == "aprobada",
                     Solicitud.fecha_inicio <= actual,
                     Solicitud.fecha_fin >= actual,
                     Solicitud.id != nueva.id,
+                    Solicitud.empleado_id.in_(miembros_ids)
                 )
-            )
-            .all()
-        )
-
-        count_ausentes = len(ausentes)
-
-        if not nueva.es_excepcion:
-            if count_ausentes >= 1:
-                return Failure(f"Cupo lleno para el día {actual.isoformat()}")
-        else:
-            if count_ausentes >= 2:
-                return Failure(f"Cupo máximo alcanzado para el día {actual.isoformat()}")
-
-            if count_ausentes == 1:
-                otra = ausentes[0]
-                es_valida = False
-                if (otra.tipo == "vacaciones" and nueva.tipo == "permiso") or (
-                    otra.tipo == "permiso" and nueva.tipo == "vacaciones"
-                ) or otra.tipo == "permiso" and nueva.tipo == "permiso":
-                    es_valida = True
-
-                if not es_valida:
-                    return Failure(
-                        f"Excepción no válida para {actual.isoformat()}: "
-                        "requiere (vacaciones+permiso) o (2 permisos)"
-                    )
-
-        actual += timedelta(days=1)
+            ) or 0
+            
+            if not nueva.es_excepcion and ausentes_count >= cupo_normal:
+                return Failure(
+                    f"CUPO_LLENO: El grupo {grupo.nombre} ya tiene {ausentes_count} "
+                    f"ausentes el día {actual.isoformat()}. Límite normal: {cupo_normal}."
+                )
+            
+            if nueva.es_excepcion and ausentes_count >= cupo_max:
+                return Failure(
+                    f"LIMITE_EXCEPCIONAL: El grupo {grupo.nombre} ya alcanzó el máximo de "
+                    f"{ausentes_count} ausentes el día {actual.isoformat()} (incluyendo "
+                    f"excepciones)."
+                )
+            
+            actual += timedelta(days=1)
 
     return Success(nueva)

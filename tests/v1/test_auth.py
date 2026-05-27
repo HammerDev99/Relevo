@@ -1,3 +1,5 @@
+from collections.abc import Generator
+
 import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
@@ -18,13 +20,16 @@ from app.routes import auth
 test_app = FastAPI()
 test_app.include_router(auth.router)
 
+
 @test_app.get("/check-auth")
 def check_auth_route(empleado: Empleado = Depends(get_empleado_actual)):
     return {"id": empleado.id, "rol": empleado.rol}
 
+
 @test_app.get("/check-coordinacion")
 def check_coord_route(empleado: Empleado = Depends(get_coordinador)):
     return {"is_admin": True}
+
 
 # In-memory engine shared by everything in the test process
 test_engine = create_engine(
@@ -34,24 +39,26 @@ test_engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
+
 @pytest.fixture(scope="session", autouse=True)
-def setup_db():
+def setup_db() -> None:
     Base.metadata.create_all(bind=test_engine)
     yield
     Base.metadata.drop_all(bind=test_engine)
 
+
 @pytest.fixture
-def db_session():
+def db_session() -> Generator[Session, None, None]:
     db = TestingSessionLocal()
-    
+
     def override_get_db():
         try:
             yield db
         finally:
             pass
-            
+
     test_app.dependency_overrides[get_db] = override_get_db
-    
+
     try:
         yield db
     finally:
@@ -62,26 +69,24 @@ def db_session():
         db.close()
         test_app.dependency_overrides.clear()
 
+
 @pytest.fixture
-def client():
+def client() -> Generator[TestClient, None, None]:
     return TestClient(test_app)
 
-def test_password_hashing():
+
+def test_password_hashing() -> None:
     pwd = "secret-password"
     h = get_password_hash(pwd)
     assert h != pwd
     assert verify_password(pwd, h) is True
     assert verify_password("wrong", h) is False
 
-def test_login_route(db_session: Session, client: TestClient):
+
+def test_login_route(db_session: Session, client: TestClient) -> None:
     pwd = "password123"
     h = get_password_hash(pwd)
-    emp = Empleado(
-        nombre="Juan", 
-        correo="juan@test.com", 
-        password_hash=h, 
-        rol="empleado"
-    )
+    emp = Empleado(nombre="Juan", correo="juan@test.com", password_hash=h, rol="empleado")
     db_session.add(emp)
     db_session.commit()
 
@@ -95,39 +100,36 @@ def test_login_route(db_session: Session, client: TestClient):
     response = client.post("/login", data={"correo": "juan@test.com", "password": "wrong"})
     assert response.status_code == 401
 
-def test_auth_dependency_with_client(db_session: Session, client: TestClient):
+
+def test_auth_dependency_with_client(db_session: Session, client: TestClient) -> None:
     pwd = "password123"
     h = get_password_hash(pwd)
-    emp = Empleado(
-        nombre="Juan", 
-        correo="juan@test.com", 
-        password_hash=h, 
-        rol="empleado"
-    )
+    emp = Empleado(nombre="Juan", correo="juan@test.com", password_hash=h, rol="empleado")
     db_session.add(emp)
     db_session.commit()
 
     # Login to get cookie
     client.post("/login", data={"correo": "juan@test.com", "password": "password123"})
-    
+
     response = client.get("/check-auth")
     assert response.status_code == 200
     assert response.json()["id"] == emp.id
 
-def test_role_authorization_with_client(db_session: Session, client: TestClient):
+
+def test_role_authorization_with_client(db_session: Session, client: TestClient) -> None:
     # Regular employee
     emp_regular = Empleado(
-        nombre="Regular", 
-        correo="reg@test.com", 
-        password_hash=get_password_hash("h"), 
-        rol="empleado"
+        nombre="Regular",
+        correo="reg@test.com",
+        password_hash=get_password_hash("h"),
+        rol="empleado",
     )
     # Coordinator
     emp_coord = Empleado(
-        nombre="Coord", 
-        correo="coord@test.com", 
-        password_hash=get_password_hash("h"), 
-        rol="coordinacion"
+        nombre="Coord",
+        correo="coord@test.com",
+        password_hash=get_password_hash("h"),
+        rol="coordinacion",
     )
     db_session.add_all([emp_regular, emp_coord])
     db_session.commit()
@@ -143,7 +145,8 @@ def test_role_authorization_with_client(db_session: Session, client: TestClient)
     assert response.status_code == 200
     assert response.json()["is_admin"] is True
 
-def test_logout(client: TestClient):
+
+def test_logout(client: TestClient) -> None:
     client.cookies.set("session", "some-token")
     response = client.get("/logout")
     assert response.status_code == 200

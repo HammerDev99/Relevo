@@ -1,10 +1,31 @@
 from datetime import UTC, date, datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
+
+# Association table for many-to-many relationship
+empleado_grupo = Table(
+    "empleado_grupo",
+    Base.metadata,
+    Column("empleado_id", ForeignKey("empleados.id"), primary_key=True),
+    Column("grupo_id", ForeignKey("grupos.id"), primary_key=True),
+)
+
+
+class Grupo(Base):
+    __tablename__ = "grupos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(100), unique=True)
+    min_presentes: Mapped[int] = mapped_column(Integer, default=1)
+
+    # Relationships
+    miembros: Mapped[list["Empleado"]] = relationship(
+        secondary=empleado_grupo, back_populates="grupos"
+    )
 
 
 class Empleado(Base):
@@ -23,6 +44,14 @@ class Empleado(Base):
         back_populates="empleado", 
         foreign_keys="Solicitud.empleado_id"
     )
+    grupos: Mapped[list["Grupo"]] = relationship(
+        secondary=empleado_grupo, back_populates="miembros"
+    )
+
+    @property
+    def grupo_ids(self) -> list[int]:
+        return [g.id for g in self.grupos]
+
 
 class Solicitud(Base):
     __tablename__ = "solicitudes"

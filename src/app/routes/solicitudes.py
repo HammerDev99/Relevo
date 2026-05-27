@@ -52,7 +52,8 @@ def crear_solicitud(
         fecha_fin=fecha_fin,
         respaldo_id=respaldo_id,
         es_excepcion=es_excepcion,
-        justificacion=justificacion
+        justificacion=justificacion,
+        estado="aprobada" # S13-C3: Autogestión
     )
 
     # Validar contra reglas de negocio

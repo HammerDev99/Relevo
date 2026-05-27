@@ -50,7 +50,7 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 
 - **Milestone v1 ✅**: Back-end completo, motor de reglas, seguridad y contenedorización.
 - **Milestone v2 ✅**: Front-end (Streamlit) + Saneamiento de infraestructura y tipos.
-- **Próximo Milestone (v3) 🔜**: Reportes Visuales + Gestión de Riesgo + Mejoras de Requerimientos.
+- **Milestone v3 ✅**: Autogestión por Grupos, panel de coordinación, y lógica de vacaciones calendario.
 
 ### Historial de Sprints
 
@@ -62,3 +62,4 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 | SPRINT_04 | Endpoints de solicitudes (Business Flow) | ✅ Done |
 | SPRINT_05 | Vista de disponibilidad anónima (RN5) | ✅ Done |
 | SPRINT_06 | Contenedorización y Guía de Despliegue | ✅ Done |
+| SPRINT_12 | Autogestión de Grupos y Panel de Config | ✅ Done |

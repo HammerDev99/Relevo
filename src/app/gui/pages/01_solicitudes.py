@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 import streamlit as st
 
@@ -9,28 +9,55 @@ from app.gui.services.solicitud_service import SolicitudService
 def show() -> None:
     st.title("📑 Mis Solicitudes")
     service = SolicitudService()
+    auth = service.auth
+    
+    # Obtener info del usuario actual para filtrar backup
+    me = auth.get_me()
+    mis_grupos = me.get("grupo_ids", []) if me else []
     
     # --- Formulario de Nueva Solicitud ---
     with st.expander("➕ Nueva Solicitud", expanded=False), st.form("nueva_solicitud"):
         tipo = st.selectbox("Tipo de Ausencia", ["vacaciones", "permiso"])
+        
+        st.caption(
+            "📅 Sugerencia: Configure su navegador en Español (Colombia) "
+            "para ver el calendario iniciando en Domingo."
+        )
+        
         col1, col2 = st.columns(2)
         with col1:
             f_inicio = st.date_input("Fecha Inicio", min_value=date.today())
         with col2:
-            f_fin = st.date_input("Fecha Fin", min_value=f_inicio)
+            if tipo == "vacaciones":
+                # S13-C2: Proyectar 22 días calendario por defecto
+                f_fin_default = f_inicio + timedelta(days=21)
+                f_fin = st.date_input("Fecha Fin", value=f_fin_default, min_value=f_inicio)
+            else:
+                f_fin = st.date_input("Fecha Fin", min_value=f_inicio)
         
         usuarios = service.listar_empleados()
         mi_email = st.session_state.get(session_keys.USER_EMAIL)
-        opciones_respaldo = {u["nombre"]: u["id"] for u in usuarios if u["correo"] != mi_email}
         
+        # S13-C3: Filtrar automáticamente por miembros del mismo grupo
+        opciones_respaldo = {
+            u["nombre"]: u["id"] 
+            for u in usuarios 
+            if u["correo"] != mi_email and any(gid in mis_grupos for gid in u.get("grupo_ids", []))
+        }
+        
+        if not opciones_respaldo:
+            st.warning("⚠️ No se encontraron compañeros en sus mismos grupos para el respaldo.")
+            # Fallback a todos los usuarios si no hay nadie en el grupo (seguridad)
+            opciones_respaldo = {u["nombre"]: u["id"] for u in usuarios if u["correo"] != mi_email}
+
         respaldo_nombre = st.selectbox(
-            "Compañero de Respaldo (RN6)", 
+            "Compañero de Respaldo (Mismo Grupo)", 
             options=list(opciones_respaldo.keys())
         )
         
         es_excepcion = st.checkbox("¿Tramitar como excepción? (RN4)")
         justificacion = st.text_area(
-            "Justificación", 
+            "Justificación / Motivo", 
             help="Obligatorio para permisos o excepciones"
         )
         
@@ -52,10 +79,16 @@ def show() -> None:
                 }
                 res = service.crear(data)
                 if res["success"]:
-                    st.success("Solicitud enviada correctamente")
+                    st.success("Solicitud procesada correctamente (Autogestión)")
                     st.rerun()
                 else:
-                    st.error(f"Error: {res['error']}")
+                    err_msg = res['error']
+                    if "CUPO_LLENO" in err_msg:
+                        st.warning(f"⚠️ {err_msg}")
+                        st.info("💡 Puede intentar guardarla marcando la casilla "
+                                "'¿Tramitar como excepción?'")
+                    else:
+                        st.error(f"Error: {err_msg}")
 
     st.divider()
 
@@ -82,7 +115,8 @@ def show() -> None:
                     st.caption(f"Creada el: {s['creada_en'][:10]}")
                 with c2:
                     st.write(f"📅 {s['fecha_inicio']} al {s['fecha_fin']}")
-                    st.write(f"⏱️ {s['dias_habiles']} días hábiles")
+                    label_dias = "días calendario" if s["tipo"] == "vacaciones" else "días hábiles"
+                    st.write(f"⏱️ {s['dias_habiles']} {label_dias}")
                 with c3:
                     html_badge = (
                         f"<div style='text-align:center; padding:5px; border-radius:5px; "

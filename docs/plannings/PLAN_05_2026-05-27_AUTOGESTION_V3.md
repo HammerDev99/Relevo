@@ -26,34 +26,34 @@
 ### SPEC-S13-C1: Re-ingeniería del Motor de Grupos
 - **Descripción**: Actualizar `models.py` para soportar Grupos (M:N para Hector) y reescribir `domain.py`.
 - **Criterios de Aceptación**:
-    - [ ] `Empleado` tiene relación con `Grupo`.
-    - [ ] Validador detecta si la ausencia baja el cupo del grupo según su `min_presentes`.
-    - [ ] Hector afecta la concurrencia de G1 y G4 simultáneamente.
-- **Estado**: `[ ]`
+    - [x] `Empleado` tiene relación con `Grupo`.
+    - [x] Validador detecta si la ausencia baja el cupo del grupo según su `min_presentes`.
+    - [x] Hector afecta la concurrencia de G1 y G4 simultáneamente.
+- **Estado**: `[x]`
 
 ### SPEC-S13-C2: Lógica de Vacaciones y Calendario "Sunday-First"
 - **Descripción**: Modificar la GUI y el motor `relevo` para la nueva cuenta de días.
 - **Criterios de Aceptación**:
-    - [ ] Al elegir `tipo='vacaciones'`, el sistema proyecta 22 días calendario (sin saltar festivos).
-    - [ ] El componente de calendario en Streamlit inicia la semana en Domingo.
-    - [ ] Los permisos (hasta 3/mes) siguen permitiendo fraccionamiento o días seguidos.
-- **Estado**: `[ ]`
+    - [x] Al elegir `tipo='vacaciones'`, el sistema proyecta 22 días calendario (sin saltar festivos).
+    - [x] El componente de calendario en Streamlit inicia la semana en Domingo.
+    - [x] Los permisos (hasta 3/mes) siguen permitiendo fraccionamiento o días seguidos.
+- **Estado**: `[x]`
 
 ### SPEC-S13-C3: Sistema de Alertas y Autogestión (Save with Exception)
 - **Descripción**: Eliminar flujo de aprobación. El sistema avisa pero no bloquea.
 - **Criterios de Aceptación**:
-    - [ ] Si `validar_solicitud` devuelve error de concurrencia, la GUI muestra advertencia de "Trámite Excepcional".
-    - [ ] El botón de guardar permite confirmar la excepción sin aprobación previa.
-    - [ ] El relevo (backup) se filtra automáticamente por miembros del mismo grupo.
-- **Estado**: `[ ]`
+    - [x] Si `validar_solicitud` devuelve error de concurrencia, la GUI muestra advertencia de "Trámite Excepcional".
+    - [x] El botón de guardar permite confirmar la excepción sin aprobación previa.
+    - [x] El relevo (backup) se filtra automáticamente por miembros del mismo grupo.
+- **Estado**: `[x]`
 
 ### SPEC-S13-C4: Panel de Configuración (Admin CRUD)
 - **Descripción**: Nueva vista para el rol `coordinacion` para gestionar el sistema.
 - **Criterios de Aceptación**:
-    - [ ] CRUD de Usuarios (Gestionar personal).
-    - [ ] Gestión de Grupos (Asignar miembros).
-    - [ ] Parámetros Globales (Editar `min_presentes` o `dias_vacaciones`).
-- **Estado**: `[ ]`
+    - [x] CRUD de Usuarios (Gestionar personal).
+    - [x] Gestión de Grupos (Asignar miembros).
+    - [x] Parámetros Globales (Editar `min_presentes` o `dias_vacaciones`).
+- **Estado**: `[x]`
 
 ---
 
@@ -66,4 +66,4 @@
 
 ---
 
-**Siguiente paso**: Iniciar `SPRINT_12` con el SPEC-S13-C1 (Motor de Grupos).
+**Siguiente paso**: SPRINT_12 completado y auditado (AUDIT_06_2026-05-27_GATE_F3_AUTOGESTION.md). Milestone v3 listo para integración final.
