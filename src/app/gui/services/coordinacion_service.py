@@ -1,0 +1,50 @@
+from typing import Any
+
+import httpx
+import streamlit as st
+
+from .auth_service import AuthService
+
+
+class CoordinacionService:
+    """Servicio para acciones administrativas (Panel de Coordinación)."""
+    
+    def __init__(self, base_url: str = "http://localhost:8000"):
+        self.base_url = base_url
+        self.auth = AuthService(base_url)
+
+    def listar_pendientes(self) -> list[dict[str, Any]]:
+        """Obtiene todas las solicitudes pendientes."""
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.get("/coordinacion/solicitudes/pendientes", headers=headers)
+                if response.status_code == 200:
+                    return response.json()
+                elif response.status_code == 403:
+                    st.error("No tienes permisos de coordinación.")
+                return []
+        except Exception as e:
+            st.error(f"Error al listar pendientes: {str(e)}")
+            return []
+
+    def procesar(self, solicitud_id: int, estado: str) -> bool:
+        """Aprueba o rechaza una solicitud."""
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.post(
+                    f"/coordinacion/solicitudes/{solicitud_id}/procesar",
+                    data={"nuevo_estado": estado},
+                    headers=headers
+                )
+                if response.status_code == 200:
+                    st.success(f"Solicitud {estado} correctamente.")
+                    return True
+                else:
+                    err = response.json().get("detail", "Error al procesar")
+                    st.error(f"Error: {err}")
+                    return False
+        except Exception as e:
+            st.error(f"Error de conexión: {str(e)}")
+            return False

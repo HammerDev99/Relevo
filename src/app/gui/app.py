@@ -69,7 +69,7 @@ def main():
             icon="📅"
         )
         pg_coordinacion = st.Page(
-            lambda: st.title("Coordinación (Próximamente)"), 
+            "pages/03_coordinacion.py", 
             title="Panel Control", 
             icon="🛡️"
         )

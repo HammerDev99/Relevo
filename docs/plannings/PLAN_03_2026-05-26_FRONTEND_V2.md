@@ -39,14 +39,14 @@ src/app/gui/
 - [x] Pantalla de Login con manejo de errores (401).
 
 ### SPEC-V2-F2: Portal del Empleado (Solicitudes)
-- [ ] Vista de "Mis Solicitudes" (Lista/Cards).
-- [ ] Formulario de "Nueva Solicitud" interactivo (Date pickers + dropdown de compañeros).
-- [ ] Integración con `validar_solicitud` (mostrar errores de cupo en la UI).
+- [x] Vista de "Mis Solicitudes" (Lista/Cards).
+- [x] Formulario de "Nueva Solicitud" interactivo (Date pickers + dropdown de compañeros).
+- [x] Integración con `validar_solicitud` (mostrar errores de cupo en la UI).
 
 ### SPEC-V2-F3: Calendario de Disponibilidad (RN5)
-- [ ] Visualización gráfica del calendario mensual.
-- [ ] Colores por estado (Verde: Libre, Naranja: Ocupado, Rojo: Excepcional).
-- [ ] Garantizar anonimato absoluto (PII Shield).
+- [x] Visualización gráfica del calendario mensual.
+- [x] Colores por estado (Verde: Libre, Naranja: Ocupado, Rojo: Excepcional).
+- [x] Garantizar anonimato absoluto (PII Shield).
 
 ### SPEC-V2-F4: Panel de Coordinación (Admin)
 - [ ] Lista de solicitudes pendientes de aprobación.

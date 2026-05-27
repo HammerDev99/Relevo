@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import create_session_token, verify_password, get_empleado_actual
+from ..auth import create_session_token, get_empleado_actual, verify_password
 from ..database import get_db
 from ..models import Empleado
 
