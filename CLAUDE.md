@@ -49,7 +49,8 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 ## Estado actual
 
 - **Milestone v1 ✅**: Back-end completo, motor de reglas, seguridad y contenedorización.
-- **Próximo Milestone (v2) 🔜**: Front-end (HTMX/Jinja2) + Panel de Coordinación avanzado.
+- **Milestone v2 ✅**: Front-end (Streamlit) + Saneamiento de infraestructura y tipos.
+- **Próximo Milestone (v3) 🔜**: Reportes Visuales + Gestión de Riesgo + Mejoras de Requerimientos.
 
 ### Historial de Sprints
 

@@ -20,3 +20,8 @@ build/
 .idea/
 Thumbs.db
 desktop.ini
+
+# Bases de Datos
+*.db
+*.sqlite3
+data/database/

@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    environment:
+      - RELEVO_MODE=api
+      - DATABASE_URL=sqlite:////app/data/database/relevo.db
+      - SECRET_KEY=demo-secret-key-123
+      - TZ=America/Bogota
+    volumes:
+      - ./data:/app/data
+
+  gui:
+    build: .
+    environment:
+      - RELEVO_MODE=gui
+      - DATABASE_URL=sqlite:////app/data/database/relevo.db
+      - SECRET_KEY=demo-secret-key-123
+      - TZ=America/Bogota
+    depends_on:
+      - api
+    volumes:
+      - ./data:/app/data
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --url http://gui:8501
+    depends_on:
+      - gui
