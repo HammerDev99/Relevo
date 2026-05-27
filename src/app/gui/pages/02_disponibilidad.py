@@ -53,26 +53,31 @@ def show() -> None:
         return
 
     # --- Renderizar Calendario (Grid) ---
-    dias_semana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+    # SPEC-S15-C2: Calendario iniciando en Domingo
+    dias_semana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
     cols = st.columns(7)
     for i, dia in enumerate(dias_semana):
         cols[i].markdown(f"**{dia}**")
 
     # Calcular espacios vacíos al inicio del mes
+    # calendar.monthrange retorna 0=Lunes, 6=Domingo
+    # Para calendario iniciando en Domingo: ajustar offset
     primer_dia_semana, num_dias = calendar.monthrange(anio, mes_index)
+    # Convertir de Lunes=0 a Domingo=0
+    offset_domingo = (primer_dia_semana + 1) % 7
     
     # Grid de días
-    total_slots = num_dias + primer_dia_semana
+    total_slots = num_dias + offset_domingo
     filas = total_slots // 7 + (1 if total_slots % 7 != 0 else 0)
-    
+
     mapa_datos = {d["fecha"]: d["estado"] for d in datos}
-    
+
     current_day = 1
     for f in range(filas):
         cols = st.columns(7)
         for d in range(7):
             idx = f * 7 + d
-            if primer_dia_semana <= idx < (primer_dia_semana + num_dias):
+            if offset_domingo <= idx < (offset_domingo + num_dias):
                 fecha_str = date(anio, mes_index, current_day).isoformat()
                 estado = mapa_datos.get(fecha_str, "DISPONIBLE")
                 
