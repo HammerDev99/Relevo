@@ -34,20 +34,9 @@ No se avanzará a nuevas funcionalidades sin cerrar estos puntos detectados en l
 - **Cambio**: Aplanar estructura de imports o corregir `PYTHONPATH` y `__init__.py` para asegurar que el modo `gui` sea tan estable como el modo `api`.
 - **Estado**: `[x]` Completado (Normalización a absolute imports app.* / relevo.*)
 
-## 3. Fase C: Milestone v3 - Gestión Avanzada
+## 3. Fase C: Evolución a Milestone v3
 
-Refinado según requerimientos de valor para coordinación:
-
-### SPEC-S13-C1: Reporte Visual de Ausencias (Heatmap/Timeline)
-- **Coordinación**: Vista de equipo que permite ver solapamientos y ausencias de un vistazo.
-- **Empleados**: Visualización interactiva de días consumidos vs. disponibles.
-
-### SPEC-S13-C2: Dashboard de Riesgo Operativo
-- **Objetivo**: Alertas automáticas cuando la cantidad de empleados disponibles caiga por debajo del umbral de seguridad para una fecha.
-- **Indicador**: Semáforo de riesgo por día en el calendario de coordinación.
-
-### SPEC-S13-C3: Exportación MVP (CSV/Excel)
-- **Objetivo**: Descarga de datos para reportes externos a la Rama Judicial.
+**Nota Histórica**: Los requerimientos de esta fase fueron redefinidos por el usuario para priorizar la **Autogestión por Grupos**. Esta fase se ha promovido a un nuevo documento de planificación integral: `docs/plannings/PLAN_05_2026-05-27_AUTOGESTION_V3.md`.
 
 ---
 
@@ -55,6 +44,4 @@ Refinado según requerimientos de valor para coordinación:
 
 | Sprint | Enfoque | SPECs | Estado |
 |--------|---------|-------|--------|
-| SPRINT_11 | Deuda Técnica & Fixes | S11-A1, S11-A2, S12-B1 | Pendiente |
-| SPRINT_12 | Reportes Visuales | S13-C1 | Pendiente |
-| SPRINT_13 | Gestión de Riesgo | S13-C2, S13-C3 | Pendiente |
+| SPRINT_11 | Deuda Técnica & Fixes | S11-A1, S11-A2, S12-B1 | ✅ Completado |
