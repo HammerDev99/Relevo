@@ -92,13 +92,10 @@ def show() -> None:
                                             key=f"min_{g['id']}")
                 with c3:
                     st.write("") # Spacer
-                    if st.button("Actualizar", key=f"upd_g_{g['id']}") and service.actualizar_grupo(g["id"], {"min_presentes": new_min}):
+                    if st.button("Actualizar", key=f"upd_g_{g['id']}") \
+                       and service.actualizar_grupo(g["id"], {"min_presentes": new_min}):
                         st.success("Actualizado")
                         st.rerun()
-
-if __name__ == "__main__":
-    show()
-            st.rerun()
 
 if __name__ == "__main__":
     show()
