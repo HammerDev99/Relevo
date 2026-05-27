@@ -1,7 +1,9 @@
-import streamlit as st
-from services.solicitud_service import SolicitudService
-from gui import session_keys
 from datetime import date
+
+import streamlit as st
+from gui import session_keys
+from services.solicitud_service import SolicitudService
+
 
 def show():
     st.title("📑 Mis Solicitudes")

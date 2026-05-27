@@ -1,0 +1,35 @@
+from typing import Any
+
+import httpx
+import streamlit as st
+
+from .auth_service import AuthService
+
+
+class DisponibilidadService:
+    """Servicio para consultar el calendario de disponibilidad anónimo."""
+    
+    def __init__(self, base_url: str = "http://localhost:8000"):
+        self.base_url = base_url
+        self.auth = AuthService(base_url)
+
+    def consultar(self, anio: int, mes: int) -> list[dict[str, Any]]:
+        """Obtiene los estados de disponibilidad para un mes específico."""
+        try:
+            # Aunque el endpoint no requiere PII, usamos auth para asegurar que es empleado
+            headers = self.auth.get_auth_headers()
+            params = {"anio": anio, "mes": mes}
+            
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.get(
+                    "/disponibilidad", 
+                    params=params, 
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                return []
+        except Exception as e:
+            st.error(f"Error al consultar disponibilidad: {str(e)}")
+            return []

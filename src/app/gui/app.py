@@ -1,8 +1,9 @@
+import os
+import sys
+
 import streamlit as st
 from gui import session_keys
 from services.auth_service import AuthService
-import os
-import sys
 
 # Añadir el path actual para que los imports funcionen correctamente
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -63,7 +64,7 @@ def main():
             icon="📑"
         )
         pg_disponibilidad = st.Page(
-            lambda: st.title("Disponibilidad (Próximamente)"), 
+            "pages/02_disponibilidad.py", 
             title="Disponibilidad", 
             icon="📅"
         )
