@@ -15,25 +15,25 @@
 ### SPEC-S14-C1: Gestión de Ciclo de Vida de Datos (Eliminación)
 - **Descripción**: Habilitar el borrado seguro de entidades manteniendo la integridad referencial.
 - **Criterios de Aceptación**:
-    - [ ] **Req 1**: El empleado puede borrar/anular sus propias solicitudes desde la GUI.
-    - [ ] **Req 2**: La coordinación puede borrar un usuario de forma definitiva.
-    - [ ] El borrado de un usuario elimina en cascada sus solicitudes (`cascade="all, delete-orphan"`) y limpia su relación con los grupos.
-- **Estado**: `[ ]`
+    - [x] **Req 1**: El empleado puede borrar/anular sus propias solicitudes desde la GUI.
+    - [x] **Req 2**: La coordinación puede borrar un usuario de forma definitiva.
+    - [x] El borrado de un usuario elimina en cascada sus solicitudes (`cascade="all, delete-orphan"`) y limpia su relación con los grupos.
+- **Estado**: `[x]`
 
 ### SPEC-S14-C2: Reglas Avanzadas de Dominio (Control de Días y Duplicidad)
 - **Descripción**: Endurecimiento del motor de validación en `domain.py`.
 - **Criterios de Aceptación**:
-    - [ ] **Req 4**: El validador bloquea la creación de un permiso si el usuario ya tiene una solicitud (aprobada o pendiente) para ese mismo día.
-    - [ ] **Req 7**: Para permisos, se valida que la duración de la solicitud individual no supere los 3 días hábiles (contando fines de semana y festivos con `relevo.festivos`). Continúa aplicando la regla mensual de 3 días máximo en total.
-- **Estado**: `[ ]`
+    - [x] **Req 4**: El validador bloquea la creación de un permiso si el usuario ya tiene una solicitud (aprobada o pendiente) para ese mismo día.
+    - [x] **Req 7**: Para permisos, se valida que la duración de la solicitud individual no supere los 3 días hábiles (contando fines de semana y festivos con `relevo.festivos`). Continúa aplicando la regla mensual de 3 días máximo en total.
+- **Estado**: `[x]`
 
 ### SPEC-S14-C3: Automatización y Experiencia de Usuario (UI/UX)
 - **Descripción**: Ajustes en el comportamiento del formulario en `01_solicitudes.py` y optimización visual.
 - **Criterios de Aceptación**:
-    - [ ] **Req 6**: Si el tipo es `permiso`, al seleccionar la `fecha_inicio`, la `fecha_fin` por defecto debe ser exactamente el mismo día.
-    - [ ] **Req 8**: Si el tipo es `vacaciones`, la UI solo solicita la `fecha_inicio`. La `fecha_fin` se calcula automáticamente (22 días calendario) y se muestra en modo solo lectura (o texto) al usuario.
-    - [ ] **Req 3**: Inyectar CSS personalizado o reorganizar el layout de columnas (`st.columns`) para apilar los elementos en pantallas pequeñas y mejorar la legibilidad en dispositivos móviles.
-- **Estado**: `[ ]`
+    - [x] **Req 6**: Si el tipo es `permiso`, al seleccionar la `fecha_inicio`, la `fecha_fin` por defecto debe ser exactamente el mismo día.
+    - [x] **Req 8**: Si el tipo es `vacaciones`, la UI solo solicita la `fecha_inicio`. La `fecha_fin` se calcula automáticamente (22 días calendario) y se muestra en modo solo lectura (o texto) al usuario.
+    - [x] **Req 3**: Inyectar CSS personalizado o reorganizar el layout de columnas (`st.columns`) para apilar los elementos en pantallas pequeñas y mejorar la legibilidad en dispositivos móviles.
+- **Estado**: `[x]`
 
 ### SPEC-S14-C4: Seguridad y Perfil de Usuario
 - **Descripción**: Permitir que los empleados gestionen sus credenciales.
