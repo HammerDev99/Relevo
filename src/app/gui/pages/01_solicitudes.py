@@ -9,17 +9,44 @@ from app.gui.services.solicitud_service import SolicitudService
 def show() -> None:
     st.title("📑 Mis Solicitudes")
     
-    # S14-C3: Req 3 - Inyectar CSS para diseño móvil responsivo
+    # SPEC-S15-C7: CSS mejorado para diseño móvil responsivo
     st.markdown("""
         <style>
         /* Forzar columnas a apilarse en móviles */
-        @media (max-width: 640px) {
-            [data-testid="stHorizontalBlock"] {
+        @media (max-width: 768px) {
+            [data-testid="stHorizontalBlock"] > div {
                 flex-direction: column !important;
+                width: 100% !important;
+            }
+            
+            /* Ajustar ancho de elementos en móvil */
+            [data-testid="stColumn"] {
+                width: 100% !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            /* Ajustar tamaño de inputs en móvil */
+            input, select, textarea {
+                font-size: 16px !important;  /* Evitar zoom en iOS */
+            }
+            
+            /* Ajustar espaciado en móvil */
+            .css-1d391kg {
+                padding: 0.5rem !important;
             }
         }
+        
         /* Mejorar legibilidad de tarjetas */
         .stActionButton { margin-top: 10px; }
+        
+        /* Ajustar tamaño de botones en móvil */
+        @media (max-width: 768px) {
+            .stButton > button {
+                width: 100% !important;
+                padding: 0.75rem !important;
+                font-size: 1rem !important;
+            }
+        }
         </style>
     """, unsafe_allow_html=True)
 

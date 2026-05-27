@@ -4,24 +4,67 @@ import streamlit as st
 from app.gui import session_keys
 from app.gui.services.auth_service import AuthService
 
-# Configuración de página (Professional Style)
+# Configuración de página (Professional Style + Mobile Optimized)
 st.set_page_config(
     page_title="Relevo — Gestión de Ausencias",
     page_icon="📅",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide",  # SPEC-S15-C7: layout wide para mejor responsividad
+    initial_sidebar_state="auto"  # SPEC-S15-C7: auto para mejor experiencia móvil
 )
 
-# Estilos CSS personalizados (Replicando estética limpia de la Rama Judicial)
+# Estilos CSS personalizados (Replicando estética limpia de la Rama Judicial + Mobile)
 st.markdown("""
     <style>
+    /* General styles */
     .main { background-color: #f5f7f9; }
     .stButton>button {
         border-radius: 5px;
         background-color: #004b87;
         color: white;
+        width: 100%;  /* SPEC-S15-C7: Botones full-width en móvil */
     }
     [data-testid="stMetricValue"] { font-size: 24px; }
+    
+    /* SPEC-S15-C7: Mobile optimizations */
+    @media (max-width: 768px) {
+        /* Ajustar sidebar para móvil */
+        .css-1d391kg {
+            width: 100% !important;
+        }
+        
+        /* Ajustar espaciado en móvil */
+        .css-1v0mbdj {
+            padding: 1rem 0.5rem !important;
+        }
+        
+        /* Ajustar tamaño de fuentes en móvil */
+        h1 { font-size: 1.5rem !important; }
+        h2 { font-size: 1.25rem !important; }
+        h3 { font-size: 1.1rem !important; }
+        
+        /* Ajustar columnas para apilarse en móvil */
+        [data-testid="stHorizontalBlock"] > div {
+            flex-direction: column !important;
+        }
+        
+        /* Ajustar ancho de contenedores */
+        .css-1lcbmhc {
+            max-width: 100% !important;
+            padding: 1rem !important;
+        }
+        
+        /* Ajustar tamaño de inputs en móvil */
+        input, select, textarea {
+            font-size: 16px !important;  /* Evitar zoom en iOS */
+        }
+    }
+    
+    /* SPEC-S15-C7: Tablet optimizations */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .stButton>button {
+            width: auto;  /* Botones normales en tablet */
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 

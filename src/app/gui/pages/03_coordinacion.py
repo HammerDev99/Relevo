@@ -5,6 +5,54 @@ from app.gui.services.coordinacion_service import CoordinacionService
 
 def show() -> None:
     st.title("🛡️ Panel de Configuración y Control")
+    
+    # SPEC-S15-C7: CSS mejorado para diseño móvil responsivo
+    st.markdown("""
+        <style>
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            /* Ajustar columnas para apilarse en móvil */
+            [data-testid="stHorizontalBlock"] > div {
+                flex-direction: column !important;
+                width: 100% !important;
+            }
+            
+            /* Ajustar tamaño de contenedores */
+            [data-testid="stContainer"] {
+                padding: 0.5rem !important;
+            }
+            
+            /* Ajustar tamaño de texto en móvil */
+            h1 { font-size: 1.5rem !important; }
+            h2 { font-size: 1.25rem !important; }
+            h3 { font-size: 1.1rem !important; }
+            
+            /* Ajustar ancho de elementos en móvil */
+            [data-testid="stColumn"] {
+                width: 100% !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            /* Ajustar tamaño de inputs en móvil */
+            input, select, textarea {
+                font-size: 16px !important;  /* Evitar zoom en iOS */
+            }
+            
+            /* Ajustar espaciado en móvil */
+            .css-1d391kg {
+                padding: 0.5rem !important;
+            }
+        }
+        
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            [data-testid="stHorizontalBlock"] > div {
+                padding: 0.5rem !important;
+            }
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
     service = CoordinacionService()
     
     tab_audit, tab_users, tab_groups = st.tabs([

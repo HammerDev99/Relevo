@@ -11,6 +11,46 @@ def show() -> None:
     st.info("Consulta los cupos disponibles para planificar tus ausencias. "
             "Garantizamos tu privacidad: no se muestran nombres ni motivos.")
     
+    # SPEC-S15-C7: CSS mejorado para diseño móvil responsivo
+    st.markdown("""
+        <style>
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            /* Ajustar calendario para móvil */
+            [data-testid="stHorizontalBlock"] > div {
+                flex-direction: column !important;
+                width: 100% !important;
+            }
+            
+            /* Ajustar tamaño de celdas del calendario en móvil */
+            .css-1v0mbdj {
+                padding: 0.25rem !important;
+            }
+            
+            /* Ajustar tamaño de texto en móvil */
+            h1 { font-size: 1.5rem !important; }
+            h2 { font-size: 1.25rem !important; }
+            
+            /* Ajustar selectores en móvil */
+            .stSelectbox {
+                width: 100% !important;
+            }
+            
+            /* Ajustar espaciado en móvil */
+            .css-1d391kg {
+                padding: 0.5rem !important;
+            }
+        }
+        
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            [data-testid="stHorizontalBlock"] > div {
+                padding: 0.5rem !important;
+            }
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
     service = DisponibilidadService()
     
     # --- Selectores de Mes y Año ---

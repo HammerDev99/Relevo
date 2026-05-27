@@ -7,12 +7,54 @@ def show() -> None:
     """SPEC-S14-C4: Página de perfil de usuario con cambio de contraseña."""
     st.title("👤 Mi Perfil")
 
-    # CSS para diseño responsivo
+    # SPEC-S15-C7: CSS mejorado para diseño móvil responsivo
     st.markdown("""
         <style>
-        @media (max-width: 640px) {
-            [data-testid="stHorizontalBlock"] {
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            /* Ajustar columnas para apilarse en móvil */
+            [data-testid="stHorizontalBlock"] > div {
                 flex-direction: column !important;
+                width: 100% !important;
+            }
+            
+            /* Ajustar tamaño de contenedores */
+            [data-testid="stContainer"] {
+                padding: 0.5rem !important;
+            }
+            
+            /* Ajustar tamaño de texto en móvil */
+            h1 { font-size: 1.5rem !important; }
+            h2 { font-size: 1.25rem !important; }
+            
+            /* Ajustar ancho de elementos en móvil */
+            [data-testid="stColumn"] {
+                width: 100% !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            /* Ajustar tamaño de inputs en móvil */
+            input, select, textarea {
+                font-size: 16px !important;  /* Evitar zoom en iOS */
+            }
+            
+            /* Ajustar espaciado en móvil */
+            .css-1d391kg {
+                padding: 0.5rem !important;
+            }
+            
+            /* Ajustar tamaño de botones en móvil */
+            .stButton > button {
+                width: 100% !important;
+                padding: 0.75rem !important;
+                font-size: 1rem !important;
+            }
+        }
+        
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            [data-testid="stHorizontalBlock"] > div {
+                padding: 0.5rem !important;
             }
         }
         </style>
