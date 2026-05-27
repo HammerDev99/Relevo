@@ -34,9 +34,9 @@ src/app/gui/
 ## 3. SPECs Verificables (Sprint 07-09)
 
 ### SPEC-V2-F1: Infraestructura y Auth GUI
-- [ ] Estructura de carpetas y archivos base.
-- [ ] Implementación de `services/auth_service.py` (cliente HTTP).
-- [ ] Pantalla de Login con manejo de errores (401).
+- [x] Estructura de carpetas y archivos base.
+- [x] Implementación de `services/auth_service.py` (cliente HTTP).
+- [x] Pantalla de Login con manejo de errores (401).
 
 ### SPEC-V2-F2: Portal del Empleado (Solicitudes)
 - [ ] Vista de "Mis Solicitudes" (Lista/Cards).

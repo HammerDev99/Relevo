@@ -1,7 +1,9 @@
+
 import httpx
 import streamlit as st
-from typing import Optional, Dict, Any
+
 from ..gui import session_keys
+
 
 class AuthService:
     """Servicio para gestionar la autenticación con el backend FastAPI."""
@@ -21,19 +23,14 @@ class AuthService:
                 
                 if response.status_code == 200:
                     data = response.json()
-                    # En este MVP, la cookie la maneja el navegador/httpx si estuviéramos en JS,
-                    # pero en Streamlit (Server-side) necesitamos extraerla o confiar en el token
-                    # si el backend devolviera uno explícito. 
-                    # Como usamos cookies firmadas, guardaremos el estado de éxito.
                     st.session_state[session_keys.IS_AUTHENTICATED] = True
                     st.session_state[session_keys.USER_EMAIL] = email
                     st.session_state[session_keys.USER_ROLE] = data.get("rol", "empleado")
-                    
-                    # Guardamos las cookies de la respuesta para futuras peticiones
                     st.session_state[session_keys.AUTH_TOKEN] = response.cookies.get("session")
                     return True
                 else:
-                    st.error(f"Error de login: {response.json().get('detail', 'Credenciales inválidas')}")
+                    err = response.json().get("detail", "Credenciales inválidas")
+                    st.error(f"Error de login: {err}")
                     return False
         except Exception as e:
             st.error(f"Error de conexión con el servidor: {str(e)}")
@@ -59,7 +56,7 @@ class AuthService:
     def user_role(self) -> str:
         return st.session_state.get(session_keys.USER_ROLE, "empleado")
 
-    def get_auth_headers(self) -> Dict[str, str]:
+    def get_auth_headers(self) -> dict[str, str]:
         """Retorna los headers/cookies necesarios para peticiones autenticadas."""
         token = st.session_state.get(session_keys.AUTH_TOKEN)
         if token:

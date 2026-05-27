@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import create_session_token, verify_password
+from ..auth import create_session_token, verify_password, get_empleado_actual
 from ..database import get_db
 from ..models import Empleado
 
@@ -42,3 +42,14 @@ def logout(response: Response):
     """Limpia la cookie de sesión."""
     response.delete_cookie("session")
     return {"message": "Logout exitoso"}
+
+@router.get("/usuarios")
+def listar_usuarios(
+    db: Session = Depends(get_db),
+    empleado: Empleado = Depends(get_empleado_actual)
+):
+    """Retorna lista de empleados activos (para selector de respaldo)."""
+    query = select(Empleado).where(Empleado.activo)
+    usuarios = db.scalars(query).all()
+    # No devolvemos hashes ni datos sensibles
+    return [{"id": u.id, "nombre": u.nombre, "correo": u.correo} for u in usuarios]
