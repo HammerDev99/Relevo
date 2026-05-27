@@ -153,3 +153,91 @@ def test_logout(client: TestClient) -> None:
     # Check that the Set-Cookie header is present and expires the session
     set_cookie = response.headers.get("set-cookie")
     assert "session=;" in set_cookie or 'session=""' in set_cookie or "Max-Age=0" in set_cookie
+
+
+def test_cambiar_password_exitoso(db_session: Session, client: TestClient) -> None:
+    """SPEC-S14-C4: Test cambio de contraseña exitoso."""
+    old_pwd = "password123"
+    new_pwd = "newpassword456"
+    h = get_password_hash(old_pwd)
+    emp = Empleado(nombre="Juan", correo="juan@test.com", password_hash=h, rol="empleado")
+    db_session.add(emp)
+    db_session.commit()
+
+    # Login
+    client.post("/login", data={"correo": "juan@test.com", "password": old_pwd})
+
+    # Cambiar contraseña
+    response = client.patch(
+        "/usuarios/me/password",
+        json={"current_password": old_pwd, "new_password": new_pwd}
+    )
+    assert response.status_code == 200
+    assert response.json()["message"] == "Contraseña actualizada exitosamente"
+
+    # Verificar que la contraseña cambió en DB
+    db_session.refresh(emp)
+    assert verify_password(new_pwd, emp.password_hash) is True
+    assert verify_password(old_pwd, emp.password_hash) is False
+
+
+def test_pwd_invalid(db_session: Session, client: TestClient) -> None:
+    """SPEC-S14-C4: Test cambio de contraseña con actual incorrecta."""
+    old_pwd = "password123"
+    new_pwd = "newpassword456"
+    h = get_password_hash(old_pwd)
+    emp = Empleado(nombre="Juan", correo="juan@test.com", password_hash=h, rol="empleado")
+    db_session.add(emp)
+    db_session.commit()
+
+    # Login
+    client.post("/login", data={"correo": "juan@test.com", "password": old_pwd})
+
+    # Intentar cambiar con contraseña actual incorrecta
+    response = client.patch(
+        "/usuarios/me/password",
+        json={"current_password": "wrongpassword", "new_password": new_pwd}
+    )
+    assert response.status_code == 400
+    assert "La contraseña actual es incorrecta" in response.json()["detail"]
+
+
+def test_cambiar_password_misma_contrasena(db_session: Session, client: TestClient) -> None:
+    """SPEC-S14-C4: Test cambio de contraseña con la misma contraseña."""
+    old_pwd = "password123"
+    h = get_password_hash(old_pwd)
+    emp = Empleado(nombre="Juan", correo="juan@test.com", password_hash=h, rol="empleado")
+    db_session.add(emp)
+    db_session.commit()
+
+    # Login
+    client.post("/login", data={"correo": "juan@test.com", "password": old_pwd})
+
+    # Intentar cambiar con la misma contraseña
+    response = client.patch(
+        "/usuarios/me/password",
+        json={"current_password": old_pwd, "new_password": old_pwd}
+    )
+    assert response.status_code == 400
+    assert "La nueva contraseña debe ser diferente a la actual" in response.json()["detail"]
+
+
+def test_cambiar_password_contrasena_corta(db_session: Session, client: TestClient) -> None:
+    """SPEC-S14-C4: Test cambio de contraseña con contraseña muy corta."""
+    old_pwd = "password123"
+    new_pwd = "12345"  # 5 caracteres (menos del mínimo de 6)
+    h = get_password_hash(old_pwd)
+    emp = Empleado(nombre="Juan", correo="juan@test.com", password_hash=h, rol="empleado")
+    db_session.add(emp)
+    db_session.commit()
+
+    # Login
+    client.post("/login", data={"correo": "juan@test.com", "password": old_pwd})
+
+    # Intentar cambiar con contraseña muy corta
+    response = client.patch(
+        "/usuarios/me/password",
+        json={"current_password": old_pwd, "new_password": new_pwd}
+    )
+    assert response.status_code == 400
+    assert "La nueva contraseña debe tener al menos 6 caracteres" in response.json()["detail"]

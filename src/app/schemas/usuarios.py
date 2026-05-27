@@ -31,3 +31,10 @@ class UsuarioUpdate(BaseModel):
     grupo_ids: list[int] | None = None
 
     model_config = ConfigDict(frozen=True)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+    model_config = ConfigDict(frozen=True)

@@ -2,10 +2,13 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.auth import create_session_token, get_empleado_actual, verify_password
+from app.auth import create_session_token, get_empleado_actual, get_password_hash, verify_password
 from app.database import get_db
 from app.models import Empleado
-from app.schemas.usuarios import UsuarioRead
+from app.schemas.usuarios import PasswordChangeRequest, UsuarioRead
+from relevo.logger import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(tags=["auth"])
 
@@ -53,3 +56,40 @@ def listar_usuarios(
     query = select(Empleado).where(Empleado.activo)
     usuarios = db.scalars(query).all()
     return list(usuarios)
+
+
+@router.patch("/usuarios/me/password")
+def cambiar_password(
+    request_data: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    empleado: Empleado = Depends(get_empleado_actual)
+) -> dict[str, str]:
+    """Permite al empleado actual cambiar su contraseña verificando la actual."""
+    # Verificar que la contraseña actual es correcta
+    if not verify_password(request_data.current_password, empleado.password_hash):
+        logger.warning(f"Intento fallido de cambio de contraseña para usuario {empleado.correo}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña actual es incorrecta"
+        )
+    
+    # Validar que la nueva contraseña no sea igual a la actual
+    if request_data.current_password == request_data.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La nueva contraseña debe ser diferente a la actual"
+        )
+    
+    # Validar longitud mínima de la nueva contraseña
+    if len(request_data.new_password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La nueva contraseña debe tener al menos 6 caracteres"
+        )
+    
+    # Actualizar el hash de la contraseña
+    empleado.password_hash = get_password_hash(request_data.new_password)
+    db.commit()
+    
+    logger.info(f"Contraseña cambiada exitosamente para usuario {empleado.correo}")
+    return {"message": "Contraseña actualizada exitosamente"}
