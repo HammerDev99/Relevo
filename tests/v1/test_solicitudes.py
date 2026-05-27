@@ -227,3 +227,26 @@ def test_eliminar_solicitud_ajena_falla(
 
     response = client.delete(f"/solicitudes/{s1.id}")
     assert response.status_code == 404
+
+
+def test_crear_solicitud_sin_justificacion(
+    auth_client: tuple[TestClient, Empleado, Empleado], db_session: Session
+) -> None:
+    """SPEC-S15-C3: Test que el backend acepta solicitudes sin justificación."""
+    client, emp, resp = auth_client
+
+    # Crear solicitud sin justificación
+    response = client.post(
+        "/solicitudes/nueva",
+        data={
+            "tipo": "vacaciones",
+            "fecha_inicio": "2026-07-01",
+            "fecha_fin": "2026-07-05",
+            "respaldo_id": resp.id,
+            "es_excepcion": False,
+            "justificacion": ""  # Justificación vacía
+        }
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["justificacion"] is None or data["justificacion"] == ""

@@ -75,16 +75,15 @@ def show() -> None:
         )
         
         es_excepcion = st.checkbox("¿Tramitar como excepción? (RN4)")
+        # SPEC-S15-C3: Justificación opcional para todos los tipos de solicitud
         justificacion = st.text_area(
-            "Justificación / Motivo", 
-            help="Obligatorio para permisos o excepciones"
+            "Justificación / Motivo (Opcional)",
+            help="Puede dejar este campo vacío si lo desea"
         )
-        
+
         if st.button("Enviar Solicitud", type="primary"):
             if not respaldo_nombre:
                 st.error("Debes seleccionar un compañero de respaldo")
-            elif tipo == "permiso" and not justificacion:
-                st.error("Los permisos requieren justificación")
             else:
                 data = {
                     "tipo": tipo,
