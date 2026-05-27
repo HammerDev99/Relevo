@@ -49,13 +49,13 @@ src/app/gui/
 - [x] Garantizar anonimato absoluto (PII Shield).
 
 ### SPEC-V2-F4: Panel de Coordinación (Admin)
-- [ ] Lista de solicitudes pendientes de aprobación.
-- [ ] Detalle de solicitud (incluye PII: nombre, motivo, justificación).
-- [ ] Acciones: Aprobar / Rechazar (Actualiza `estado` en BD).
+- [x] Lista de solicitudes pendientes de aprobación.
+- [x] Detalle de solicitud (incluye PII: nombre, motivo, justificación).
+- [x] Acciones: Aprobar / Rechazar (Actualiza `estado` en BD).
 
 ### SPEC-V2-F5: Dockerización Unificada
-- [ ] Actualizar `Dockerfile` y `entrypoint.sh` para soportar `RELEVO_MODE=gui|api`.
-- [ ] Configurar `HEALTHCHECK` para ambos servicios.
+- [x] Actualizar `Dockerfile` y `entrypoint.sh` para soportar `RELEVO_MODE=gui|api`.
+- [x] Configurar `HEALTHCHECK` para ambos servicios.
 
 ---
 
