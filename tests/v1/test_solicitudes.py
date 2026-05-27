@@ -180,3 +180,50 @@ def test_listar_mis_solicitudes(
     items = response.json()
     assert len(items) == 1
     assert items[0]["empleado_id"] == emp.id
+
+def test_eliminar_solicitud_propia(
+    auth_client: tuple[TestClient, Empleado, Empleado], db_session: Session
+) -> None:
+    client, emp, resp = auth_client
+
+    s1 = Solicitud(
+        empleado_id=emp.id,
+        tipo="vacaciones",
+        fecha_inicio=date(2026, 1, 1),
+        fecha_fin=date(2026, 1, 5),
+        dias_habiles=5,
+        respaldo_id=resp.id,
+    )
+    db_session.add(s1)
+    db_session.commit()
+
+    solicitud_id = s1.id
+
+    response = client.delete(f"/solicitudes/{solicitud_id}")
+    assert response.status_code == 200
+
+    # Verify it is deleted
+    assert db_session.get(Solicitud, solicitud_id) is None
+
+def test_eliminar_solicitud_ajena_falla(
+    auth_client: tuple[TestClient, Empleado, Empleado], db_session: Session
+) -> None:
+    client, emp, resp = auth_client
+
+    h = get_password_hash("h")
+    otro = Empleado(nombre="Otro", correo="otro@test.com", password_hash=h)
+    db_session.add(otro)
+    db_session.commit()
+
+    s1 = Solicitud(
+        empleado_id=otro.id,
+        tipo="vacaciones",
+        fecha_inicio=date(2026, 1, 1),
+        fecha_fin=date(2026, 1, 5),
+        dias_habiles=5,
+    )
+    db_session.add(s1)
+    db_session.commit()
+
+    response = client.delete(f"/solicitudes/{s1.id}")
+    assert response.status_code == 404

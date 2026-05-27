@@ -66,3 +66,31 @@ def test_create_solicitud(db_session: Session) -> None:
     assert saved_solicitud is not None
     assert saved_solicitud.empleado.nombre == "Solicitante"
     assert saved_solicitud.dias_habiles == 10
+
+
+def test_delete_empleado_cascade(db_session: Session) -> None:
+    from datetime import date
+    
+    empleado = Empleado(
+        nombre="To Be Deleted", correo="delete@ramajudicial.gov.co", password_hash="fakehash"
+    )
+    db_session.add(empleado)
+    db_session.commit()
+
+    solicitud = Solicitud(
+        empleado_id=empleado.id,
+        tipo="permiso",
+        fecha_inicio=date(2026, 6, 1),
+        fecha_fin=date(2026, 6, 1),
+        dias_habiles=1,
+    )
+    db_session.add(solicitud)
+    db_session.commit()
+    
+    assert db_session.query(Solicitud).count() == 1
+    
+    db_session.delete(empleado)
+    db_session.commit()
+    
+    assert db_session.query(Empleado).count() == 0
+    assert db_session.query(Solicitud).count() == 0

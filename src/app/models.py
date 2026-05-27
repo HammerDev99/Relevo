@@ -10,8 +10,8 @@ from .database import Base
 empleado_grupo = Table(
     "empleado_grupo",
     Base.metadata,
-    Column("empleado_id", ForeignKey("empleados.id"), primary_key=True),
-    Column("grupo_id", ForeignKey("grupos.id"), primary_key=True),
+    Column("empleado_id", ForeignKey("empleados.id", ondelete="CASCADE"), primary_key=True),
+    Column("grupo_id", ForeignKey("grupos.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
@@ -42,7 +42,8 @@ class Empleado(Base):
     # Relationships
     solicitudes: Mapped[list["Solicitud"]] = relationship(
         back_populates="empleado", 
-        foreign_keys="Solicitud.empleado_id"
+        foreign_keys="Solicitud.empleado_id",
+        cascade="all, delete-orphan"
     )
     grupos: Mapped[list["Grupo"]] = relationship(
         secondary=empleado_grupo, back_populates="miembros"
@@ -57,19 +58,23 @@ class Solicitud(Base):
     __tablename__ = "solicitudes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    empleado_id: Mapped[int] = mapped_column(ForeignKey("empleados.id"))
+    empleado_id: Mapped[int] = mapped_column(ForeignKey("empleados.id", ondelete="CASCADE"))
     tipo: Mapped[str] = mapped_column(String(20)) # 'vacaciones' or 'permiso'
     fecha_inicio: Mapped[date] = mapped_column(Date)
     fecha_fin: Mapped[date] = mapped_column(Date)
     dias_habiles: Mapped[int] = mapped_column(Integer)
-    respaldo_id: Mapped[int | None] = mapped_column(ForeignKey("empleados.id"), nullable=True)
+    respaldo_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empleados.id", ondelete="SET NULL"), nullable=True
+    )
     # 'pendiente', 'aprobada', 'rechazada'
     estado: Mapped[str] = mapped_column(String(20), default="pendiente") 
     es_excepcion: Mapped[bool] = mapped_column(Boolean, default=False)
     justificacion: Mapped[str | None] = mapped_column(Text, nullable=True)
     creada_en: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     procesada_en: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    procesada_por_id: Mapped[int | None] = mapped_column(ForeignKey("empleados.id"), nullable=True)
+    procesada_por_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empleados.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Relationships
     empleado: Mapped["Empleado"] = relationship(

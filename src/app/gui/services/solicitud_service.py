@@ -63,3 +63,21 @@ class SolicitudService:
         except Exception as e:
             st.error(f"Error al listar usuarios: {str(e)}")
             return []
+
+    @log_gui_action("SolicitudService")
+    def eliminar_propia(self, solicitud_id: int) -> bool:
+        """Elimina una solicitud propia."""
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.delete(f"/solicitudes/{solicitud_id}", headers=headers)
+                if response.status_code == 200:
+                    st.success("Solicitud eliminada.")
+                    return True
+                else:
+                    err = response.json().get("detail", "Error al eliminar")
+                    st.error(f"Error: {err}")
+                    return False
+        except Exception as e:
+            st.error(f"Error de conexión: {str(e)}")
+            return False

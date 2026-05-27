@@ -73,3 +73,18 @@ def crear_solicitud(
         "empleado_nombre": empleado.nombre,
         "respaldo_nombre": nueva.respaldo.nombre if nueva.respaldo else "N/A"
     })
+
+@router.delete("/{solicitud_id}")
+def eliminar_solicitud(
+    solicitud_id: int,
+    db: Session = Depends(get_db),
+    empleado: Empleado = Depends(get_empleado_actual)
+) -> dict[str, str]:
+    """Elimina o anula una solicitud propia."""
+    solicitud = db.get(Solicitud, solicitud_id)
+    if not solicitud or solicitud.empleado_id != empleado.id:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+    
+    db.delete(solicitud)
+    db.commit()
+    return {"message": "Solicitud eliminada exitosamente"}

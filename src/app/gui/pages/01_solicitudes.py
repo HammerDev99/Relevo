@@ -125,6 +125,9 @@ def show() -> None:
                     st.markdown(html_badge, unsafe_allow_html=True)
                     if s["es_excepcion"]:
                         st.caption("⚠️ Excepción")
+                    btn_del = st.button("🗑️ Eliminar", key=f"del_{s['id']}")
+                    if btn_del and service.eliminar_propia(s['id']):
+                        st.rerun()
 
 if __name__ == "__main__":
     show()

@@ -85,6 +85,26 @@ class CoordinacionService:
         except Exception:
             return False
 
+    @log_gui_action("CoordinacionService")
+    def eliminar_usuario(self, usuario_id: int) -> bool:
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.delete(
+                    f"/coordinacion/usuarios/{usuario_id}",
+                    headers=headers
+                )
+                if response.status_code == 200:
+                    st.success("Usuario y sus registros asociados eliminados en cascada.")
+                    return True
+                else:
+                    err = response.json().get("detail", "Error al eliminar")
+                    st.error(f"Error: {err}")
+                    return False
+        except Exception as e:
+            st.error(f"Error de conexión: {str(e)}")
+            return False
+
     # --- Gestión de Grupos ---
 
     @log_gui_action("CoordinacionService")

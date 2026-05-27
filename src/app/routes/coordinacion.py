@@ -91,6 +91,21 @@ def actualizar_usuario(
     db.refresh(user)
     return user
 
+@router.delete("/usuarios/{usuario_id}")
+def eliminar_usuario(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    admin: Empleado = Depends(get_coordinador)
+) -> dict[str, str]:
+    """Elimina definitivamente un usuario y sus entidades en cascada."""
+    user = db.get(Empleado, usuario_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    db.delete(user)
+    db.commit()
+    return {"message": "Usuario eliminado exitosamente"}
+
 # --- Gestión de Grupos ---
 
 @router.get("/grupos", response_model=list[GrupoRead])

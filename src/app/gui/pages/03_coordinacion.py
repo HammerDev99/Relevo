@@ -66,6 +66,13 @@ def show() -> None:
                     if service.actualizar_usuario(u["id"], update_data):
                         st.success("Usuario actualizado")
                         st.rerun()
+            
+            # Botón de eliminación destructiva
+            btn_del = st.button(
+                f"🗑️ Eliminar permanentemente a {u['nombre']}", key=f"del_u_{u['id']}"
+            )
+            if btn_del and service.eliminar_usuario(u["id"]):
+                st.rerun()
 
     # --- TAB 3: CONFIGURACIÓN DE GRUPOS ---
     with tab_groups:
