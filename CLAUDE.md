@@ -43,7 +43,7 @@ MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurren
 docker-compose -f docker-compose.dev.yml up --build
 
 # Inicialización (Seed)
-.venv\Scripts\python.exe -m src.app.seed
+$env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 ```
 
 ## Estado actual

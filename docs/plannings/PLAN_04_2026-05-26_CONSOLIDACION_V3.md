@@ -17,12 +17,14 @@ No se avanzará a nuevas funcionalidades sin cerrar estos puntos detectados en l
 - **Objetivo**: Implementar trazabilidad total en la capa Streamlit.
 - **Cambios**: Crear `src/app/gui/utils/logger.py` y decorar servicios para registrar cada petición/error hacia la API.
 - **Criterio**: Logs visibles en `docker logs relevo-gui` con contexto de usuario y error.
+- **Estado**: `[x]` Completado
 
 ### SPEC-S11-A2: DTOs Inmutables (Pydantic v2)
 - **Origen**: AUDIT_05 §1.
 - **Objetivo**: Eliminar el transporte vía diccionarios genéricos.
 - **Cambios**: Crear `src/app/schemas/` con modelos Pydantic inmutables para Solicitudes, Usuarios y Disponibilidad.
 - **Criterio**: Tipado estricto en la API y validación inmediata en los servicios de la GUI.
+- **Estado**: `[x]` Completado
 
 ## 2. Fase B: Correcciones de Pruebas Manuales (Act)
 
@@ -30,6 +32,7 @@ No se avanzará a nuevas funcionalidades sin cerrar estos puntos detectados en l
 - **Defecto**: `ModuleNotFoundError: No module named 'app.gui'`.
 - **Análisis**: Conflicto de resolución de paquetes en el entorno contenedorizado.
 - **Cambio**: Aplanar estructura de imports o corregir `PYTHONPATH` y `__init__.py` para asegurar que el modo `gui` sea tan estable como el modo `api`.
+- **Estado**: `[x]` Completado (Normalización a absolute imports app.* / relevo.*)
 
 ## 3. Fase C: Milestone v3 - Gestión Avanzada
 

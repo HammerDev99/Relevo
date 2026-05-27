@@ -6,7 +6,7 @@ from app.gui import session_keys
 from app.gui.services.solicitud_service import SolicitudService
 
 
-def show():
+def show() -> None:
     st.title("📑 Mis Solicitudes")
     service = SolicitudService()
     

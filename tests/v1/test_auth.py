@@ -3,15 +3,16 @@ from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from src.app.auth import (
+
+from app.auth import (
     get_coordinador,
     get_empleado_actual,
     get_password_hash,
     verify_password,
 )
-from src.app.database import Base, get_db
-from src.app.models import Empleado
-from src.app.routes import auth
+from app.database import Base, get_db
+from app.models import Empleado
+from app.routes import auth
 
 # Create a test app instance
 test_app = FastAPI()

@@ -1,22 +1,22 @@
 import calendar
 from datetime import date
-from typing import Any
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models import Solicitud
+from app.database import get_db
+from app.models import Solicitud
+from app.schemas.disponibilidad import DisponibilidadRead
 
 router = APIRouter(prefix="/disponibilidad", tags=["disponibilidad"])
 
-@router.get("")
+@router.get("", response_model=list[DisponibilidadRead])
 def consultar_disponibilidad(
     anio: int,
     mes: int,
     db: Session = Depends(get_db)
-):
+) -> list[DisponibilidadRead]:
     """
     Retorna el estado de disponibilidad por día del mes sin PII (RN5).
     Estados: DISPONIBLE, OCUPADO, EXCEPCIONAL.
@@ -34,7 +34,7 @@ def consultar_disponibilidad(
     )
     solicitudes = db.scalars(query).all()
 
-    resultado: list[dict[str, Any]] = []
+    resultado: list[DisponibilidadRead] = []
     
     for dia in range(1, num_dias + 1):
         actual = date(anio, mes, dia)
@@ -52,9 +52,9 @@ def consultar_disponibilidad(
             # Se requiere tramitar como excepción si se quiere ese mismo día.
             estado = "OCUPADO"
             
-        resultado.append({
-            "fecha": actual.isoformat(),
-            "estado": estado
-        })
+        resultado.append(DisponibilidadRead(
+            fecha=actual,
+            estado=estado
+        ))
         
     return resultado

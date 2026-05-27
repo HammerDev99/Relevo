@@ -4,17 +4,18 @@ from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import get_coordinador
-from ..database import get_db
-from ..models import Empleado, Solicitud
+from app.auth import get_coordinador
+from app.database import get_db
+from app.models import Empleado, Solicitud
+from app.schemas.solicitudes import SolicitudRead
 
 router = APIRouter(prefix="/coordinacion", tags=["coordinacion"])
 
-@router.get("/solicitudes/pendientes")
+@router.get("/solicitudes/pendientes", response_model=list[SolicitudRead])
 def listar_pendientes(
     db: Session = Depends(get_db),
     admin: Empleado = Depends(get_coordinador)
-):
+) -> list[SolicitudRead]:
     """Lista todas las solicitudes pendientes de todos los empleados (Solo Admin)."""
     query = select(Solicitud).where(Solicitud.estado == "pendiente")
     solicitudes = db.scalars(query).all()
@@ -22,21 +23,11 @@ def listar_pendientes(
     # Enriquecer con datos del empleado (PII permitida para coordinación)
     resultado = []
     for s in solicitudes:
-        emp = db.get(Empleado, s.empleado_id)
-        respaldo = db.get(Empleado, s.respaldo_id) if s.respaldo_id else None
-        
-        resultado.append({
-            "id": s.id,
-            "empleado_nombre": emp.nombre if emp else "Desconocido",
-            "tipo": s.tipo,
-            "fecha_inicio": s.fecha_inicio,
-            "fecha_fin": s.fecha_fin,
-            "dias_habiles": s.dias_habiles,
-            "respaldo_nombre": respaldo.nombre if respaldo else "N/A",
-            "es_excepcion": s.es_excepcion,
-            "justificacion": s.justificacion,
-            "creada_en": s.creada_en
-        })
+        s_dict = SolicitudRead.model_validate(s)
+        resultado.append(s_dict.model_copy(update={
+            "empleado_nombre": s.empleado.nombre,
+            "respaldo_nombre": s.respaldo.nombre if s.respaldo else "N/A"
+        }))
     return resultado
 
 @router.post("/solicitudes/{solicitud_id}/procesar")
@@ -45,7 +36,7 @@ def procesar_solicitud(
     nuevo_estado: str = Form(...), # 'aprobada' o 'rechazada'
     db: Session = Depends(get_db),
     admin: Empleado = Depends(get_coordinador)
-):
+) -> dict[str, str]:
     """Aprueba o rechaza una solicitud (Solo Admin)."""
     solicitud = db.get(Solicitud, solicitud_id)
     if not solicitud:

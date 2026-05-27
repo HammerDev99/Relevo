@@ -3,7 +3,7 @@ import streamlit as st
 from app.gui.services.coordinacion_service import CoordinacionService
 
 
-def show():
+def show() -> None:
     st.title("🛡️ Panel de Coordinación")
     st.subheader("Gestión de Solicitudes Pendientes")
     
@@ -38,11 +38,13 @@ def show():
             
             with col2:
                 st.write("") # Espaciador
-                if st.button("✅ Aprobar", key=f"aprov_{s['id']}", use_container_width=True) and service.procesar(s["id"], "aprobada"):
-                    st.rerun()
-                
-                if st.button("❌ Rechazar", key=f"rech_{s['id']}", use_container_width=True) and service.procesar(s["id"], "rechazada"):
-                    st.rerun()
+                if st.button("✅ Aprobar", key=f"aprov_{s['id']}", use_container_width=True):
+                    if service.procesar(s["id"], "aprobada"):
+                        st.rerun()
+
+                if st.button("❌ Rechazar", key=f"rech_{s['id']}", use_container_width=True):
+                    if service.procesar(s["id"], "rechazada"):
+                        st.rerun()
 
 if __name__ == "__main__":
     show()

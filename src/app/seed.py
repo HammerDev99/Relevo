@@ -1,9 +1,9 @@
-from src.app.auth import get_password_hash
-from src.app.database import SessionLocal, init_db
-from src.app.models import Empleado
+from app.auth import get_password_hash
+from app.database import SessionLocal, init_db
+from app.models import Empleado
 
 
-def seed():
+def seed() -> None:
     init_db()
     db = SessionLocal()
     

@@ -4,9 +4,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
-from src.app.database import Base, get_db
-from src.app.main import app
-from src.app.models import Empleado, Solicitud
+
+from app.database import Base, get_db
+from app.main import app
+from app.models import Empleado, Solicitud
 
 # In-memory engine shared for tests
 test_engine = create_engine(

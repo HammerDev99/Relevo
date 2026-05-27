@@ -19,10 +19,10 @@ case "${RELEVO_MODE:-api}" in
   api)
     # Inicializar/Migrar base de datos si es necesario (Solo en modo API para evitar race conditions)
     echo "==> Inicializando base de datos (Modo API)..."
-    gosu relevo python -m src.app.seed
+    gosu relevo python -m app.seed
 
     echo "==> Iniciando Relevo API (uvicorn :8000)..."
-    exec gosu relevo uvicorn src.app.main:app \
+    exec gosu relevo uvicorn app.main:app \
         --host 0.0.0.0 \
         --port 8000 \
         --log-level info \

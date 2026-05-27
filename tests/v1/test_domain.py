@@ -3,10 +3,11 @@ from datetime import date
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from src.app.database import Base
-from src.app.domain import validar_solicitud
-from src.app.models import Empleado, Solicitud
-from src.relevo.result import Failure, Success
+
+from app.database import Base
+from app.domain import validar_solicitud
+from app.models import Empleado, Solicitud
+from relevo.result import Failure, Success
 
 
 @pytest.fixture

@@ -2,10 +2,10 @@ from datetime import timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-from src.app.models import Empleado, Solicitud
-from src.relevo.result import Failure, Result, Success
 
+from app.models import Empleado, Solicitud
 from relevo.festivos import dias_habiles
+from relevo.result import Failure, Result, Success
 
 
 def validar_solicitud(db: Session, nueva: Solicitud) -> Result[Solicitud, str]:

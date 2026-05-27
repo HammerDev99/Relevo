@@ -1,11 +1,5 @@
-import os
-import sys
 
 import streamlit as st
-
-# Añadir el path actual para que los imports funcionen correctamente (Safety hack)
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 
 from app.gui import session_keys
 from app.gui.services.auth_service import AuthService
@@ -31,7 +25,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-def main():
+def main() -> None:
     auth = AuthService()
 
     # --- Estado Inicial ---

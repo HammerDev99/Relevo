@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import bcrypt
 from fastapi import Depends, HTTPException, Request, status
@@ -28,10 +28,10 @@ def get_session_data(token: str) -> dict[str, Any] | None:
     """Decodifica y valida un token de sesión."""
     try:
         # Expiración configurada en segundos
-        return serializer.loads(
+        return cast(dict[str, Any], serializer.loads(
             token, 
             max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-        )
+        ))
     except Exception:
         return None
 

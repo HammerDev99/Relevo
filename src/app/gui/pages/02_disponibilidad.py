@@ -6,7 +6,7 @@ import streamlit as st
 from app.gui.services.disponibilidad_service import DisponibilidadService
 
 
-def show():
+def show() -> None:
     st.title("📅 Calendario de Disponibilidad")
     st.info("Consulta los cupos disponibles para planificar tus ausencias. "
             "Garantizamos tu privacidad: no se muestran nombres ni motivos.")

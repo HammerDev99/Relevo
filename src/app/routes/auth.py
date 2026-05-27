@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import create_session_token, get_empleado_actual, verify_password
-from ..database import get_db
-from ..models import Empleado
+from app.auth import create_session_token, get_empleado_actual, verify_password
+from app.database import get_db
+from app.models import Empleado
+from app.schemas.usuarios import UsuarioRead
 
 router = APIRouter(tags=["auth"])
 
@@ -14,7 +15,7 @@ def login(
     correo: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
-):
+) -> dict[str, str]:
     """Autentica un empleado y establece la cookie de sesión."""
     query = select(Empleado).where(Empleado.correo == correo, Empleado.activo)
     empleado = db.scalar(query)
@@ -38,18 +39,17 @@ def login(
     return {"message": "Login exitoso", "rol": empleado.rol}
 
 @router.get("/logout")
-def logout(response: Response):
+def logout(response: Response) -> dict[str, str]:
     """Limpia la cookie de sesión."""
     response.delete_cookie("session")
     return {"message": "Logout exitoso"}
 
-@router.get("/usuarios")
+@router.get("/usuarios", response_model=list[UsuarioRead])
 def listar_usuarios(
     db: Session = Depends(get_db),
     empleado: Empleado = Depends(get_empleado_actual)
-):
+) -> list[Empleado]:
     """Retorna lista de empleados activos (para selector de respaldo)."""
     query = select(Empleado).where(Empleado.activo)
     usuarios = db.scalars(query).all()
-    # No devolvemos hashes ni datos sensibles
-    return [{"id": u.id, "nombre": u.nombre, "correo": u.correo} for u in usuarios]
+    return list(usuarios)

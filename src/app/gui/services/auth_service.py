@@ -1,7 +1,10 @@
+from typing import Any, cast
+
 import httpx
 import streamlit as st
 
 from app.gui import session_keys
+from app.gui.utils.logger import log_gui_action
 
 
 class AuthService:
@@ -11,6 +14,7 @@ class AuthService:
         # En Docker, el servicio api es accesible por su nombre
         self.base_url = base_url
 
+    @log_gui_action("AuthService")
     def login(self, email: str, password: str) -> bool:
         """Intenta iniciar sesión y guarda el estado en session_state."""
         try:
@@ -22,7 +26,7 @@ class AuthService:
                 )
                 
                 if response.status_code == 200:
-                    data = response.json()
+                    data = cast(dict[str, Any], response.json())
                     st.session_state[session_keys.IS_AUTHENTICATED] = True
                     st.session_state[session_keys.USER_EMAIL] = email
                     st.session_state[session_keys.USER_ROLE] = data.get("rol", "empleado")
@@ -36,7 +40,8 @@ class AuthService:
             st.error(f"Error de conexión con el servidor: {str(e)}")
             return False
 
-    def logout(self):
+    @log_gui_action("AuthService")
+    def logout(self) -> None:
         """Limpia la sesión local."""
         for key in [
             session_keys.IS_AUTHENTICATED, 
@@ -50,11 +55,11 @@ class AuthService:
 
     @property
     def is_authenticated(self) -> bool:
-        return st.session_state.get(session_keys.IS_AUTHENTICATED, False)
+        return cast(bool, st.session_state.get(session_keys.IS_AUTHENTICATED, False))
 
     @property
     def user_role(self) -> str:
-        return st.session_state.get(session_keys.USER_ROLE, "empleado")
+        return cast(str, st.session_state.get(session_keys.USER_ROLE, "empleado"))
 
     def get_auth_headers(self) -> dict[str, str]:
         """Retorna los headers/cookies necesarios para peticiones autenticadas."""

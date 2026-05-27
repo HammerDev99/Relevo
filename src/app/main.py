@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 from fastapi import FastAPI
-from src.app.database import init_db
-from src.app.routes import auth, coordinacion, disponibilidad, solicitudes
+
+from app.database import init_db
+from app.routes import auth, coordinacion, disponibilidad, solicitudes
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup: Initialize DB
     init_db()
     yield
@@ -21,5 +23,5 @@ app.include_router(disponibilidad.router)
 app.include_router(coordinacion.router)
 
 @app.get("/")
-def read_root():
+def read_root() -> dict[str, str]:
     return {"message": "Relevo API v1"}

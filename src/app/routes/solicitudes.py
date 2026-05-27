@@ -4,23 +4,36 @@ from fastapi import APIRouter, Depends, Form, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import get_empleado_actual
-from ..database import get_db
-from ..domain import validar_solicitud
-from ..models import Empleado, Solicitud
+from app.auth import get_empleado_actual
+from app.database import get_db
+from app.domain import validar_solicitud
+from app.models import Empleado, Solicitud
+from app.schemas.solicitudes import SolicitudRead
+from relevo.result import Failure
 
 router = APIRouter(prefix="/solicitudes", tags=["solicitudes"])
 
-@router.get("")
+@router.get("", response_model=list[SolicitudRead])
 def listar_solicitudes(
     db: Session = Depends(get_db),
     empleado: Empleado = Depends(get_empleado_actual)
-):
+) -> list[SolicitudRead]:
     """Retorna las solicitudes del empleado autenticado."""
     query = select(Solicitud).where(Solicitud.empleado_id == empleado.id)
-    return db.scalars(query).all()
+    solicitudes = db.scalars(query).all()
+    
+    # Mapeo manual para incluir nombres si es necesario (o confiar en relationship + property)
+    res = []
+    for s in solicitudes:
+        s_dict = SolicitudRead.model_validate(s)
+        # Asegurar nombres para la GUI
+        res.append(s_dict.model_copy(update={
+            "empleado_nombre": s.empleado.nombre,
+            "respaldo_nombre": s.respaldo.nombre if s.respaldo else "N/A"
+        }))
+    return res
 
-@router.post("/nueva")
+@router.post("/nueva", response_model=SolicitudRead)
 def crear_solicitud(
     tipo: str = Form(...),
     fecha_inicio: date = Form(...),
@@ -30,7 +43,7 @@ def crear_solicitud(
     justificacion: str | None = Form(None),
     db: Session = Depends(get_db),
     empleado: Empleado = Depends(get_empleado_actual)
-):
+) -> SolicitudRead:
     """Crea una nueva solicitud previa validación de dominio."""
     nueva = Solicitud(
         empleado_id=empleado.id,
@@ -44,7 +57,7 @@ def crear_solicitud(
 
     # Validar contra reglas de negocio
     resultado = validar_solicitud(db, nueva)
-    if not resultado.is_success:
+    if isinstance(resultado, Failure):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=resultado.error
@@ -53,4 +66,9 @@ def crear_solicitud(
     db.add(nueva)
     db.commit()
     db.refresh(nueva)
-    return nueva
+    
+    res = SolicitudRead.model_validate(nueva)
+    return res.model_copy(update={
+        "empleado_nombre": empleado.nombre,
+        "respaldo_nombre": nueva.respaldo.nombre if nueva.respaldo else "N/A"
+    })
