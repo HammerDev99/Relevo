@@ -51,8 +51,9 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 - **Milestone v1 ✅**: Back-end completo, motor de reglas, seguridad y contenedorización.
 - **Milestone v2 ✅**: Front-end (Streamlit) + Saneamiento de infraestructura y tipos.
 - **Milestone v3 ✅**: Autogestión por Grupos, panel de coordinación, y lógica de vacaciones calendario.
-- **Milestone v4 🔜**: Mejoras UX móvil, reglas avanzadas de permisos (anti-duplicidad, topes) y gestión de ciclo de vida de datos (cascada, contraseñas).
-- **Milestone v5 🔜**: Mejoras de calendario (inicio domingo, tooltips, interactividad), UX móvil avanzada y seguridad (cambio de contraseña). PLAN_07 en curso.
+- **Milestone v4 ✅**: Mejoras UX móvil, reglas avanzadas de permisos (anti-duplicidad, topes) y gestión de ciclo de vida de datos (cascada, contraseñas).
+- **Milestone v5 ✅**: Mejoras de calendario (inicio domingo, tooltips, interactividad), UX móvil avanzada y seguridad (cambio de contraseña).
+- **Milestone v6 🔜**: Despliegue VPS productivo con EasyPanel (SPRINT_15 completado, pendiente despliegue real).
 
 ### Historial de Sprints
 
@@ -65,3 +66,6 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 | SPRINT_05 | Vista de disponibilidad anónima (RN5) | ✅ Done |
 | SPRINT_06 | Contenedorización y Guía de Despliegue | ✅ Done |
 | SPRINT_12 | Autogestión de Grupos y Panel de Config | ✅ Done |
+| SPRINT_13 | Mejoras UX móvil y reglas avanzadas | ✅ Done |
+| SPRINT_14 | Mejoras de calendario y seguridad | ✅ Done |
+| SPRINT_15 | Compatibilidad VPS (nombres de servicios) | ✅ Done |

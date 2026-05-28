@@ -78,12 +78,14 @@ Cada archivo AUDIT contiene en un solo documento:
 | 05 | 2026-05-26 | Gate F2 (Frontend) | APROBADO | 92% |
 | 06 | 2026-05-27 | Gate F3 (Autogestión) | APROBADO | 94% |
 | 07 | 2026-05-27 | Gate V4 (Parcial) | APROBADO | 87% |
+| 08 | 2026-05-27 | Gate V5 (Calificación UX) | APROBADO | 100% |
+| 09 | 2026-05-28 | Gate VPS (Compatibilidad) | APROBADO | 100% |
 
 ## Próxima Auditoría
 
-**AUDIT_08**: Gate F5 — Mejoras de Calendario, UX y Seguridad (PLAN_07)
+**AUDIT_10**: Gate F6 — PLAN_08 (Backlog de mejoras)
 
-Fecha estimada: Post-implementación de SPEC-S14-C4 y SPEC-S15-C1 a C7
+Fecha estimada: Post-implementación de SPEC-S15-C5 (Tooltip grupos), SPEC-S15-C6 (Calendario interactivo) y mejoras de infraestructura (rotación logs, backup automatizado).
 
 ---
 
