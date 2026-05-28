@@ -13,6 +13,6 @@
 - Los errores de la API se propagan a la GUI mediante el código de estado HTTP y el detalle del error.
 
 ## Infraestructura Docker
-- Hostname `api`: Servicio de backend (Puerto 8000).
-- Hostname `gui`: Servicio de frontend (Puerto 8501).
+- Hostname `relevo-api`: Servicio de backend (Puerto 8000).
+- Hostname `relevo-gui`: Servicio de frontend (Puerto 8501).
 - Variable `RELEVO_MODE`: Conmuta el punto de entrada entre API y GUI.

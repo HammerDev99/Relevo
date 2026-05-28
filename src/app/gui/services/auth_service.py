@@ -10,8 +10,8 @@ from app.gui.utils.logger import log_gui_action
 class AuthService:
     """Servicio para gestionar la autenticación con el backend FastAPI."""
     
-    def __init__(self, base_url: str = "http://api:8000"):
-        # En Docker, el servicio api es accesible por su nombre
+    def __init__(self, base_url: str = "http://relevo-api:8000"):
+        # En Docker, el servicio relevo-api es accesible por su nombre
         self.base_url = base_url
 
     @log_gui_action("AuthService")

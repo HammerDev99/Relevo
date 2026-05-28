@@ -1,5 +1,5 @@
 services:
-  api:
+  relevo-api:
     build: .
     environment:
       - RELEVO_MODE=api
@@ -9,7 +9,7 @@ services:
     volumes:
       - ./data:/app/data
 
-  gui:
+  relevo-gui:
     build: .
     environment:
       - RELEVO_MODE=gui
@@ -17,12 +17,12 @@ services:
       - SECRET_KEY=demo-secret-key-123
       - TZ=America/Bogota
     depends_on:
-      - api
+      - relevo-api
     volumes:
       - ./data:/app/data
 
   tunnel:
     image: cloudflare/cloudflared:latest
-    command: tunnel --url http://gui:8501
+    command: tunnel --url http://relevo-gui:8501
     depends_on:
-      - gui
+      - relevo-gui

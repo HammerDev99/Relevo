@@ -7,7 +7,7 @@ Este documento detalla los mecanismos para exponer y desplegar la aplicación Re
 Para pruebas rápidas sin configuración de servidor, se utiliza **Cloudflare Quick Tunnels**.
 
 ### Archivos Relacionados
-- `docker-compose.tunnel.yml`: Define los servicios `api`, `gui` y el contenedor `tunnel` que solicita la URL pública.
+- `docker-compose.tunnel.yml`: Define los servicios `relevo-api`, `relevo-gui` y el contenedor `tunnel` que solicita la URL pública.
 - `docker-entrypoint.sh`: Contiene los flags `--server.enableCORS=false` y `--server.enableXsrfProtection=false` necesarios para que Streamlit acepte conexiones a través del túnel.
 
 ### Comando de Ejecución

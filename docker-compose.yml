@@ -1,16 +1,32 @@
 services:
-  app:
+  relevo-api:
     build: .
     image: relevo-app:v1
-    ports:
-      - "8000:8000"
-    volumes:
-      - relevo_data:/app/data
-      - relevo_logs:/app/logs
     environment:
+      - RELEVO_MODE=api
       - DATABASE_URL=sqlite:////app/data/database/relevo.db
       - SECRET_KEY=${SECRET_KEY}
       - TZ=America/Bogota
+    volumes:
+      - relevo_data:/app/data
+      - relevo_logs:/app/logs
+    restart: unless-stopped
+
+  relevo-gui:
+    build: .
+    image: relevo-app:v1
+    ports:
+      - "8501:8501"
+    environment:
+      - RELEVO_MODE=gui
+      - DATABASE_URL=sqlite:////app/data/database/relevo.db
+      - SECRET_KEY=${SECRET_KEY}
+      - TZ=America/Bogota
+    volumes:
+      - relevo_data:/app/data
+      - relevo_logs:/app/logs
+    depends_on:
+      - relevo-api
     restart: unless-stopped
 
 volumes:

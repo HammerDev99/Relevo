@@ -10,7 +10,7 @@ from app.gui.utils.logger import log_gui_action
 class CoordinacionService:
     """Servicio para acciones administrativas (Panel de Coordinación)."""
 
-    def __init__(self, base_url: str = "http://api:8000") -> None:
+    def __init__(self, base_url: str = "http://relevo-api:8000") -> None:
         self.base_url = base_url
         self.auth = AuthService(base_url)
 
