@@ -53,4 +53,20 @@
 
 ---
 
-**Siguiente paso**: Iniciar `SPRINT_13` para la implementación secuencial de los SPECs definidos, partiendo con las modificaciones de la Base de Datos (S14-C1) y las reglas de Dominio (S14-C2).
+## 3. Backlog de Hallazgos y Nuevas Funcionalidades (Diferidos)
+*Estos ítems han sido detectados durante las pruebas manuales y se integrarán formalmente en el próximo Planning (PLAN_07).*
+
+| ID | Hallazgo / Requerimiento | Estado | Prioridad |
+|----|-------|--------|-----------|
+| **SPEC-S15-C1** | **Regla Combinada**: Confirmar que es posible pedir vacaciones y permisos (hasta 3 días) en el mismo mes. | `[ ]` | P1 |
+| **SPEC-S15-C2** | **UX Calendario**: Configurar el calendario para que inicie en Domingo en la GUI de Disponibilidad. | `[ ]` | P2 |
+| **SPEC-S15-C3** | **UI Flexible**: Hacer que el campo de "Justificación/Motivo" sea opcional para todos los tipos de solicitud. | `[ ]` | P2 |
+| **SPEC-S15-C4** | **Visualización Selectiva**: En la vista de disponibilidad, no pintar festivos ni fines de semana para los rangos de permisos. | `[ ]` | P2 |
+| **SPEC-S15-C5** | **Tooltip de Grupos**: Mostrar hover con los nombres de los grupos que ocupan una fecha. Activación gestionable por Coordinación. | `[ ]` | P1 |
+| **SPEC-S15-C6** | **Calendario Interactivo**: Permitir clic en fecha para ver alerta de ocupación o redirigir a creación con fecha pre-cargada. | `[ ]` | P1 |
+| **SPEC-S15-C7** | **Optimización Móvil V2**: Corregir problemas de renderizado detectados en dispositivos móviles (Ref: Screenshot 151919). | `[ ]` | P0 |
+
+---
+
+**Nota sobre SPEC-S15-C1**: Se ha verificado preliminarmente que el motor de reglas actual (`domain.py`) ya maneja de forma independiente el saldo de vacaciones (anual) y el de permisos (mensual), por lo que no hay conflicto técnico para pedirlos en el mismo mes. Se validará con un test específico en la próxima fase.
+

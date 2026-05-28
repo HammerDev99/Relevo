@@ -52,6 +52,7 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 - **Milestone v2 ✅**: Front-end (Streamlit) + Saneamiento de infraestructura y tipos.
 - **Milestone v3 ✅**: Autogestión por Grupos, panel de coordinación, y lógica de vacaciones calendario.
 - **Milestone v4 🔜**: Mejoras UX móvil, reglas avanzadas de permisos (anti-duplicidad, topes) y gestión de ciclo de vida de datos (cascada, contraseñas).
+- **Milestone v5 🔜**: Mejoras de calendario (inicio domingo, tooltips, interactividad), UX móvil avanzada y seguridad (cambio de contraseña). PLAN_07 en curso.
 
 ### Historial de Sprints
 

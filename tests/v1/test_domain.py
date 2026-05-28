@@ -278,7 +278,7 @@ def test_validar_duplicidad_dias(db_session: Session) -> None:
 
 
 def test_validar_vacaciones_permisos_mismo_mes(db_session: Session) -> None:
-    """SPEC-S15-C1: Validar que un empleado puede pedir vacaciones y permisos en el mismo mes sin conflicto."""
+    """SPEC-S15-C1: Validar que un empleado puede pedir vacaciones y permisos en el mismo mes."""
     g = Grupo(nombre="G", min_presentes=0)
     emp1 = Empleado(nombre="Emp1", correo="emp1@test.com", password_hash="h", activo=True)
     resp = Empleado(nombre="Resp", correo="resp@test.com", password_hash="h", activo=True)
