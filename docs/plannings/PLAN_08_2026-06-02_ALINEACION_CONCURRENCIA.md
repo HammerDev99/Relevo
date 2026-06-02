@@ -167,3 +167,38 @@ El calendario hoy es **anónimo y público** (un estado por día). En el modelo 
 
 - El motor `domain.py` **no requiere cambios** en su modelo de concurrencia: ya es correcto. El trabajo es alinear el **calendario** y la **documentación** hacia él, más la mejora puntual de RN4 (A2).
 - El mensaje a empleados redactado en la sesión describe el comportamiento real esperado y sirve como insumo de comunicación del cambio.
+
+---
+
+## 9. Estado Operativo y Acciones Manuales Pendientes (anclaje cold-start)
+
+> Esta sección existe para que el plan sea autosuficiente al reiniciar el contexto del LLM. Captura acciones **manuales/operativas** que no viven en el repositorio (configuración de EasyPanel/VPS).
+
+### 9.1 Estado del despliegue (a 2026-06-02)
+- **Producción activa**: `relevo-api` (interno :8000) + `relevo-gui` (`relevo.sprintjudicial.com`, :8501) en EasyPanel/VPS `31.97.146.7`.
+- **BD de producción**: migrada al volumen bind `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db` (owner `1000:1000`).
+- **`main` está adelante de lo desplegado**: todos los commits hasta `cd4a340` requieren **redeploy** para quedar activos en el VPS.
+
+### 9.2 Acciones manuales pendientes de verificar/ejecutar
+
+| # | Acción | Dónde | Por qué | Estado |
+|---|--------|-------|---------|:------:|
+| M1 | **Redeploy** de `relevo-api` y `relevo-gui` con la imagen más reciente | EasyPanel | Activar auth guard, `/docs` off, UX móvil, navegación mes/año, coordinadores LUISA/JOHN | ❓ |
+| M2 | **Quitar el dominio `api.relevo.sprintjudicial.com`** del servicio `relevo-api` | EasyPanel → relevo-api → Domains | La API no debe ser accesible desde internet (solo interna `relevo-api:8000`) | ❓ |
+| M3 | **Confirmar `APP_ENV=production`** en variables de `relevo-api` | EasyPanel env | Deshabilita `/docs`, `/redoc`, `/openapi.json` en producción | ✅ visto en `docker inspect` |
+| M4 | **Configurar webhook auto-deploy** GitHub→EasyPanel (push a `main` → redeploy) | GitHub Settings/Webhooks + EasyPanel | Evitar redeploys manuales tras cada commit | ❓ |
+| M5 | Mantener `CREDENCIALES_PRUEBA.md` solo local (gitignored) | Local | Contiene usuarios/contraseñas de prueba; incluye coordinadores LUISA y JOHN | ℹ️ |
+
+### 9.3 Verificación de aislamiento de la API (tras M2)
+```bash
+# Debe FALLAR (connection refused / timeout) — API no expuesta:
+curl -m 5 https://api.relevo.sprintjudicial.com/        # no debe responder 200
+# Debe responder {"message":"Relevo API v1"} — solo interno:
+docker exec $(docker ps -q -f "name=relevo-gui") wget -qO- http://relevo-api:8000/
+```
+
+### 9.4 Referencias clave para retomar en frío
+- Guía de despliegue completa: `docs/others/deploy-vps-instructions.md`
+- Reglas de negocio (a corregir en este plan): `CLAUDE.md` §Reglas de negocio + `README.md`
+- Motor autoritativo de concurrencia: `src/app/domain.py` (función `validar_solicitud`)
+- Calendario a migrar: `src/app/routes/disponibilidad.py` + `src/app/gui/pages/02_disponibilidad.py`
