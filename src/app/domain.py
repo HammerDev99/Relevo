@@ -98,6 +98,21 @@ def validar_solicitud(db: Session, nueva: Solicitud) -> Result[Solicitud, str]:
     # Empleado sin grupo (SPEC-S16-A4, decisión 2026-06-02): puede solicitar
     # aplicando solo saldos (RN2), respaldo (RN6) y duplicidad. No se evalúa
     # concurrencia de grupo (el bucle se omite al no tener grupos).
+
+    # Validar composición de excepción (RN4 - SPEC-S16-A2)
+    # Solo aplica cuando el empleado tiene grupos (la concurrencia de grupo es relevante)
+    if nueva.es_excepcion and empleado.grupos:
+        if nueva.tipo == "vacaciones":
+            return Failure(
+                "Vacaciones no pueden solicitarse como excepción. "
+                "RN4 solo permite excepción para permiso justificado."
+            )
+        if not nueva.justificacion or not nueva.justificacion.strip():
+            return Failure(
+                "Permiso de excepción requiere justificación (RN4: vacaciones+permiso "
+                "o 2 permisos justificados)."
+            )
+
     for grupo in empleado.grupos:
         # N = total miembros activos del grupo
         miembros_ids = [m.id for m in grupo.miembros if m.activo]
