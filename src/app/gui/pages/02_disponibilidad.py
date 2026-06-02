@@ -12,7 +12,18 @@ def show() -> None:
 
     st.markdown("""
     <style>
-    /* ── Selectores de mes/año ── */
+    /* ── Botones de navegación mes/año: estilo neutro ── */
+    [data-testid="stBaseButton-secondary"] {
+        background-color: #f0f2f6 !important;
+        color: #444 !important;
+        border: 1px solid #d0d3da !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stBaseButton-secondary"]:hover {
+        background-color: #e0e3ea !important;
+        border-color: #b0b3ba !important;
+    }
     @media (max-width: 768px) {
         .stSelectbox, .stNumberInput { width: 100% !important; }
     }
@@ -116,43 +127,48 @@ def show() -> None:
 
     col_y1, col_y2, col_y3, col_gap, col_m1, col_m2, col_m3 = st.columns([1, 2, 1, 0.3, 1, 3, 1])
 
+    # Capturar clics ANTES de renderizar labels (evita desfase en primera pulsación)
     with col_y1:
-        clicked_menos = st.button("−", key="anio_menos", use_container_width=True)
-        if clicked_menos and st.session_state.cal_anio > 2024:
-            st.session_state.cal_anio -= 1
+        anio_menos = st.button("−", key="anio_menos", use_container_width=True)
+    with col_y3:
+        anio_mas = st.button("+", key="anio_mas", use_container_width=True)
+    with col_m1:
+        mes_ant = st.button("‹", key="mes_ant", use_container_width=True)
+    with col_m3:
+        mes_sig = st.button("›", key="mes_sig", use_container_width=True)
+
+    # Actualizar estado tras capturar todos los clics
+    if anio_menos and st.session_state.cal_anio > 2024:
+        st.session_state.cal_anio -= 1
+    if anio_mas and st.session_state.cal_anio < 2030:
+        st.session_state.cal_anio += 1
+    if mes_ant:
+        if st.session_state.cal_mes == 1:
+            st.session_state.cal_mes = 12
+            if st.session_state.cal_anio > 2024:
+                st.session_state.cal_anio -= 1
+        else:
+            st.session_state.cal_mes -= 1
+    if mes_sig:
+        if st.session_state.cal_mes == 12:
+            st.session_state.cal_mes = 1
+            if st.session_state.cal_anio < 2030:
+                st.session_state.cal_anio += 1
+        else:
+            st.session_state.cal_mes += 1
+
+    # Renderizar labels con estado ya actualizado
+    label_style = "text-align:center;font-weight:700;padding:6px 0;font-size:1rem;"
     with col_y2:
         st.markdown(
-            f"<div style='text-align:center;font-weight:700;padding:6px 0;font-size:1rem;'>"
-            f"{st.session_state.cal_anio}</div>",
+            f"<div style='{label_style}'>{st.session_state.cal_anio}</div>",
             unsafe_allow_html=True,
         )
-    with col_y3:
-        clicked_mas = st.button("+", key="anio_mas", use_container_width=True)
-        if clicked_mas and st.session_state.cal_anio < 2030:
-            st.session_state.cal_anio += 1
-
-    with col_m1:
-        if st.button("‹", key="mes_ant", use_container_width=True):
-            if st.session_state.cal_mes == 1:
-                st.session_state.cal_mes = 12
-                if st.session_state.cal_anio > 2024:
-                    st.session_state.cal_anio -= 1
-            else:
-                st.session_state.cal_mes -= 1
     with col_m2:
         st.markdown(
-            f"<div style='text-align:center;font-weight:700;padding:6px 0;font-size:1rem;'>"
-            f"{meses[st.session_state.cal_mes - 1]}</div>",
+            f"<div style='{label_style}'>{meses[st.session_state.cal_mes - 1]}</div>",
             unsafe_allow_html=True,
         )
-    with col_m3:
-        if st.button("›", key="mes_sig", use_container_width=True):
-            if st.session_state.cal_mes == 12:
-                st.session_state.cal_mes = 1
-                if st.session_state.cal_anio < 2030:
-                    st.session_state.cal_anio += 1
-            else:
-                st.session_state.cal_mes += 1
 
     anio = st.session_state.cal_anio
     mes_index = st.session_state.cal_mes
