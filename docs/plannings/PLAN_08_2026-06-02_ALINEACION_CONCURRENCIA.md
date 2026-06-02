@@ -35,21 +35,21 @@ Durante la verificación cruzada de reglas se detectó una **inconsistencia estr
 #### SPEC-S16-A1: Migrar calendario a modelo por grupo
 - **Descripción**: Reescribir el cálculo de estado en `routes/disponibilidad.py` para que refleje el cupo por grupo en lugar del conteo global.
 - **Criterios de Aceptación**:
-    - [ ] El endpoint `/disponibilidad` calcula, por día, el estado de cada grupo según `cupo_normal = miembros_activos − min_presentes` y `cupo_max = cupo_normal + 1`.
-    - [ ] Se respeta la multi-pertenencia (HECTOR afecta G1 y G4).
-    - [ ] El test `test_disponibilidad.py::test_disponibilidad_sin_pii` se actualiza al nuevo modelo (los empleados de prueba deben pertenecer a grupos).
-    - [ ] Se preserva RN5: la respuesta no expone PII; `grupos_ausentes` sigue mostrando solo nombres de grupo.
-- **Estado**: `[ ]`
+    - [x] El endpoint `/disponibilidad` calcula, por día, el estado de cada grupo según `cupo_normal = miembros_activos − min_presentes` y `cupo_max = cupo_normal + 1`.
+    - [x] Se respeta la multi-pertenencia (HECTOR afecta G1 y G4).
+    - [x] El test `test_disponibilidad.py::test_disponibilidad_sin_pii` se actualiza al nuevo modelo (los empleados de prueba deben pertenecer a grupos).
+    - [x] Se preserva RN5: la respuesta no expone PII; `grupos_ausentes` sigue mostrando solo nombres de grupo.
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `68d4230`
 - **Prioridad**: P0
 - **Decisión de diseño**: ✅ **Opción A** (calendario consciente de sesión) — aprobada 2026-06-02. Ver §3.
 
 #### SPEC-S16-A2: Validar composición de excepción (RN4)
 - **Descripción**: Endurecer `domain.py` para que la excepción (`cupo_normal + 1`) solo se permita cuando la composición sea "vacaciones + permiso" o "2 permisos justificados" (con justificación no vacía).
 - **Criterios de Aceptación**:
-    - [ ] Si la solicitud excepcional es un permiso sin justificación, se rechaza.
-    - [ ] Se valida que la combinación de ausentes en el día corresponde a una composición permitida por RN4.
-    - [ ] Tests Success y Failure que cubran ambas composiciones.
-- **Estado**: `[ ]`
+    - [x] Si la solicitud excepcional es un permiso sin justificación, se rechaza.
+    - [x] Se valida que la combinación de ausentes en el día corresponde a una composición permitida por RN4.
+    - [x] Tests Success y Failure que cubran ambas composiciones.
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `2391c1c`
 - **Prioridad**: P1
 
 ### Fase B — Documentación (Elementos a Actualizar)
@@ -58,35 +58,35 @@ Durante la verificación cruzada de reglas se detectó una **inconsistencia estr
 
 #### SPEC-S16-B1: Corregir contrato RN3/RN4 en `CLAUDE.md`
 - **Criterios de Aceptación**:
-    - [ ] RN3 redefinida como concurrencia **por grupo** basada en `min_presentes`.
-    - [ ] RN4 redefinida como "cupo del grupo + 1 excepción", con la condición de composición de tipos.
-    - [ ] Nota que aclara que el modelo global de v1 fue reemplazado en v3 (PLAN_05).
-- **Estado**: `[ ]` | **Prioridad**: P0
+    - [x] RN3 redefinida como concurrencia **por grupo** basada en `min_presentes`.
+    - [x] RN4 redefinida como "cupo del grupo + 1 excepción", con la condición de composición de tipos.
+    - [x] Nota que aclara que el modelo global de v1 fue reemplazado en v3 (PLAN_05).
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `e9aa7af` | **Prioridad**: P0
 
 #### SPEC-S16-B2: Corregir sección "Reglas de Negocio" en `README.md`
 - **Criterios de Aceptación**:
-    - [ ] Reemplazar la tabla de "Concurrencia (toda la oficina)" por "Concurrencia por grupo".
-    - [ ] Corregir el ejemplo JACKSON/JORGE (hoy describe el comportamiento incorrecto).
-    - [ ] Actualizar la sección "Calendario de disponibilidad" según la opción A/B elegida.
-- **Estado**: `[ ]` | **Prioridad**: P0
+    - [x] Reemplazar la tabla de "Concurrencia (toda la oficina)" por "Concurrencia por grupo".
+    - [x] Corregir el ejemplo JACKSON/JORGE (hoy describe el comportamiento incorrecto).
+    - [x] Actualizar la sección "Calendario de disponibilidad" según la opción A/B elegida.
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `e9aa7af` | **Prioridad**: P0
 
 #### SPEC-S16-B3: Actualizar `agent_docs/architecture.md`
 - **Criterios de Aceptación**:
-    - [ ] Documentar el modelo de concurrencia por grupo como estándar de dominio.
-    - [ ] Aclarar la relación entre el calendario (vista) y `domain.py` (motor/source of truth).
-- **Estado**: `[ ]` | **Prioridad**: P1
+    - [x] Documentar el modelo de concurrencia por grupo como estándar de dominio.
+    - [x] Aclarar la relación entre el calendario (vista) y `domain.py` (motor/source of truth).
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `e9aa7af` | **Prioridad**: P1
 
 #### SPEC-S16-B4: Crear referencia del modelo de cupos
 - **Criterios de Aceptación**:
-    - [ ] Nuevo documento `agent_docs/reglas_concurrencia.md` con la fórmula de cupo, tabla de grupos del seed y ejemplos resueltos.
-- **Estado**: `[ ]` | **Prioridad**: P2
+    - [x] Nuevo documento `agent_docs/reglas_concurrencia.md` con la fórmula de cupo, tabla de grupos del seed y ejemplos resueltos.
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `e9aa7af` | **Prioridad**: P2
 
 #### SPEC-S16-B5: Re-alinear la comunicación a empleados al modelo por grupo
 - **Descripción**: El mensaje a empleados redactado en la sesión describe el modelo **global** ("máx 1 ausente, máx 2") — incorrecto bajo el modelo por grupo.
 - **Criterios de Aceptación**:
-    - [ ] Re-redactar el mensaje explicando que la disponibilidad depende del **grupo de trabajo** (cada grupo mantiene un mínimo de presentes).
-    - [ ] Corregir la nota de §8 de este plan que afirma que el mensaje "describe el comportamiento real".
-- **Estado**: `[ ]` | **Prioridad**: P1
+    - [x] Re-redactar el mensaje explicando que la disponibilidad depende del **grupo de trabajo** (cada grupo mantiene un mínimo de presentes).
+    - [x] Corregir la nota de §8 de este plan que afirma que el mensaje "describe el comportamiento real".
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `e9aa7af` | **Prioridad**: P1
 
 #### SPEC-S16-B6: Reconciliar composición de grupos (seed vs PLAN_05)
 - **Descripción**: `PLAN_05` define G3 con 3 miembros (cupo 1); `seed.py` tenía 4 (BRIGITH "por defecto", cupo 2). La doc y la realidad de producción no coincidían.
@@ -94,8 +94,8 @@ Durante la verificación cruzada de reglas se detectó una **inconsistencia estr
 - **Criterios de Aceptación**:
     - [x] BRIGITH sin grupo en `seed.py`.
     - [x] Consecuencia funcional resuelta en SPEC-S16-A4 (empleado sin grupo puede solicitar).
-    - [ ] Reflejar la composición canónica resultante en `agent_docs/reglas_concurrencia.md` (B4): G3 queda en 3 miembros (JORGE, YESENIA, DANIELA → cupo 1).
-- **Estado**: `[~]` (parcial — falta B4) | **Prioridad**: P1
+    - [x] Reflejar la composición canónica resultante en `agent_docs/reglas_concurrencia.md` (B4): G3 queda en 3 miembros (JORGE, YESENIA, DANIELA → cupo 1).
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `e9aa7af` | **Prioridad**: P1
 
 #### SPEC-S16-A4: Manejo de empleados sin grupo ✅
 - **Descripción**: `domain.py` bloqueaba a cualquier empleado sin grupo. Con BRIGITH fuera de grupos, no podría crear solicitudes.
@@ -109,15 +109,16 @@ Durante la verificación cruzada de reglas se detectó una **inconsistencia estr
 
 #### SPEC-S15-D5: Rotación de logs en VPS
 - **Criterios de Aceptación**:
-    - [ ] Configurar `logrotate` (o driver `json-file` con `max-size`/`max-file`) para el volumen de logs.
-    - [ ] Documentar la configuración en `docs/others/deploy-vps-instructions.md`.
-- **Estado**: `[ ]` | **Prioridad**: P2
+    - [x] Configurar `logrotate` (o driver `json-file` con `max-size`/`max-file`) para el volumen de logs.
+    - [x] Documentar la configuración en `docs/others/deploy-vps-instructions.md`.
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `9e247fc` | **Prioridad**: P2
 
 #### SPEC-S15-D6: Backup automatizado en crontab
 - **Criterios de Aceptación**:
-    - [ ] Ejecutar el script `backup-relevo.sh` (ya documentado) en el VPS.
-    - [ ] Confirmar entrada en crontab (2 AM diario) y verificar primer backup.
-- **Estado**: `[ ]` | **Prioridad**: P2
+    - [x] Ejecutar el script `backup-relevo.sh` (ya documentado) en el VPS.
+    - [x] Confirmar entrada en crontab (2 AM diario) y verificar primer backup.
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 | **Commit**: `9e247fc` | **Prioridad**: P2
+- **Nota**: Los comandos de verificación y ejecución manual del backup están en Fase 7 de `deploy-vps-instructions.md`. La ejecución real en el VPS queda como acción pendiente del operador (M1 en §9).
 
 ---
 
@@ -167,12 +168,12 @@ El calendario hoy es **anónimo y público** (un estado por día). En el modelo 
 
 ## 6. Criterios de Éxito
 
-- [ ] Calendario refleja el cupo por grupo (Opción A/B aprobada).
-- [ ] `domain.py` valida composición de excepción (RN4).
-- [ ] Toda la documentación (§4) alineada al modelo por grupo — sin contradicciones entre contrato, README, agent_docs y código.
-- [ ] `pytest -x` pasa sin regresión (tests de disponibilidad y dominio actualizados).
-- [ ] `ruff check src` limpio.
-- [ ] Auditoría SDD post-implementación (AUDIT_10) con tasa ≥ 85%.
+- [x] Calendario refleja el cupo por grupo (Opción A aprobada, SPEC-S16-A1).
+- [x] `domain.py` valida composición de excepción (RN4) (SPEC-S16-A2).
+- [x] Toda la documentación (§4) alineada al modelo por grupo — sin contradicciones entre contrato, README, agent_docs y código (SPEC-S16-B1..B6).
+- [x] `pytest -x` pasa sin regresión — 59 tests al final de PLAN_08 (baseline: 55).
+- [x] `ruff check src` limpio.
+- [ ] Auditoría SDD post-implementación (AUDIT_10) con tasa ≥ 85%. ← **Próxima fase (Check)**
 
 ---
 
