@@ -36,11 +36,6 @@ Sistema diseñado para la coordinación de vacaciones y permisos en dependencias
 3. Acceder a la interfaz: [http://localhost:8501](http://localhost:8501)
 4. Documentación de la API: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-### Usuarios de Prueba (Seed)
-El sistema se inicializa automáticamente con:
-- **Administrador**: `admin@test.com` / `admin123`
-- **Empleado**: `empleado@test.com` / `juan123`
-
 ## 📂 Estructura del Proyecto
 
 ```text
