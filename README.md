@@ -62,38 +62,47 @@ Sistema diseñado para la coordinación de vacaciones y permisos en dependencias
 
 Un empleado puede solicitar vacaciones y permisos en el mismo mes sin conflicto — los saldos son independientes.
 
-### Concurrencia (toda la oficina)
+### Concurrencia por grupo
 
-La regla de concurrencia aplica **globalmente** sobre los 10 empleados, sin distinción de grupo:
+La regla de concurrencia opera **independientemente por grupo de trabajo**, no de forma global:
 
-| Ausentes simultáneos | Estado del día | Qué significa |
-|---------------------|----------------|---------------|
-| 0 | 🟢 Disponible | Cupo libre, cualquiera puede ausentarse |
-| 1 | 🟡 Ocupado | Ya hay un ausente — se requiere tramitar como **excepción** (RN4) |
-| 2 | 🔴 Cupo lleno | No es posible ausentarse ese día |
+| Concepto | Fórmula | Ejemplo (G3: 3 miembros, min 2) |
+|---------|---------|--------------------------------|
+| `cupo_normal` | `miembros_activos − min_presentes` | `3 − 2 = 1` (1 ausente normal) |
+| `cupo_max` | `cupo_normal + 1` | `2` (1 excepción adicional) |
+| Estado: Disponible | `ausentes < cupo_normal` | 0 ausentes en G3 |
+| Estado: Ocupado | `ausentes == cupo_normal` | 1 ausente en G3 → se requiere excepción (RN4) |
+| Estado: Excepcional | `ausentes >= cupo_max` | 2+ ausentes en G3 → no se pueden agregar más |
 
-> **Importante**: si JACKSON (G2) tiene permiso el martes, JORGE (G3) verá ese día como **Ocupado** aunque sean de grupos distintos. Esto es correcto — la oficina funciona como una unidad y el cupo estándar es 1 ausente en total, no 1 por grupo.
+> **Ejemplo**: si JORGE (G3) está ausente, ese día solo afecta la disponibilidad de G3 — JACKSON (G2) puede ausentarse sin problema si su grupo tiene cupo. Cada grupo gestiona su propia concurrencia.
+
+**Excepción (RN4)**: el cupo `cupo_normal + 1` solo se permite para un **permiso con justificación**. Vacaciones no pueden solicitarse como excepción.
 
 ### Grupos de trabajo y su propósito
 
-Los grupos **no** definen quién puede ausentarse al mismo tiempo. Su función es determinar el **compañero de respaldo** obligatorio:
+Los grupos **definen la concurrencia** (cuántos pueden ausentarse al mismo tiempo) y el **compañero de respaldo** obligatorio:
 
 - Cada empleado pertenece a uno o más grupos de trabajo.
-- Al solicitar una ausencia, el sistema filtra automáticamente los posibles respaldos mostrando solo compañeros **del mismo grupo**.
-- Esto garantiza que quien cubre la ausencia conoce las tareas específicas del área.
+- El motor de reglas (`domain.py`) valida el cupo por grupo en cada solicitud.
+- Al solicitar una ausencia, el sistema filtra los posibles respaldos mostrando solo compañeros **del mismo grupo**.
 
-| Grupo | Función principal | Mín. presentes |
-|-------|-------------------|:--------------:|
-| G1: Comunicaciones y Atención | Atención al público y comunicaciones | 2 |
-| G2: Fichas EJPMS | Gestión de fichas judiciales | 2 |
-| G3: Reparto Const. y Penal | Reparto constitucional y penal | 2 |
-| G4: Notificaciones y Archivo | Notificaciones y archivo | 1 |
+| Grupo | Función principal | Miembros | Mín. presentes | Cupo normal |
+|-------|-------------------|:--------:|:--------------:|:-----------:|
+| G1: Comunicaciones y Atención | Atención al público y comunicaciones | 3 | 2 | 1 |
+| G2: Fichas EJPMS | Gestión de fichas judiciales | 3 | 2 | 1 |
+| G3: Reparto Const. y Penal | Reparto constitucional y penal | 3 | 2 | 1 |
+| G4: Notificaciones y Archivo | Notificaciones y archivo | 2 | 1 | 1 |
+
+> BRIGITH no pertenece a ningún grupo; puede solicitar aplicando solo saldos y respaldo (sin restricción de concurrencia de grupo).
 
 ### Calendario de disponibilidad
 
-El calendario es **público** (no requiere iniciar sesión) y muestra el estado global de cada día. Cuando el tooltip de grupos está activo (configurable desde el Panel de Coordinación), al pasar el cursor sobre un día ocupado se muestran los **grupos** con ausencias — nunca nombres ni motivos (RN5: privacidad).
+El calendario muestra el estado de disponibilidad de cada día:
 
-Esto permite que un empleado de G3 identifique, por ejemplo, que el día está ocupado por ausencia de G2, y decida si tramita excepción o elige otra fecha.
+- **Con sesión iniciada**: estado relativo a los grupos del usuario. Si G3 tiene cupo lleno pero G2 está disponible, un empleado de G2 verá ese día como 🟢 Disponible.
+- **Sin sesión** (vista pública): vista informativa general — estado más restrictivo entre todos los grupos.
+
+Cuando el tooltip de grupos está activo (configurable desde el Panel de Coordinación), al pasar el cursor sobre un día ocupado se muestran los **grupos** con ausencias — nunca nombres ni motivos (RN5: privacidad).
 
 ### Respaldo obligatorio
 

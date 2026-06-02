@@ -190,7 +190,7 @@ El calendario hoy es **anónimo y público** (un estado por día). En el modelo 
 ## 8. Notas
 
 - El motor `domain.py` **no requiere cambios** en su modelo de concurrencia: ya es correcto. El trabajo es alinear el **calendario** y la **documentación** hacia él, más la mejora puntual de RN4 (A2).
-- El mensaje a empleados redactado en la sesión describe el comportamiento real esperado y sirve como insumo de comunicación del cambio.
+- ~~El mensaje a empleados redactado en la sesión describe el comportamiento real esperado.~~ **Corrección (SPEC-S16-B5)**: el mensaje original describía el modelo global (incorrecto). El documento actualizado es `docs/others/comunicacion_empleados.md`, que explica el modelo por grupo.
 
 ---
 

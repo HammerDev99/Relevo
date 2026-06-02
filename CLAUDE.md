@@ -16,11 +16,13 @@ MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurren
 | ID | Regla |
 |----|-------|
 | RN2 | 22 días vacaciones/año, 3 días permiso/mes por empleado |
-| RN3 | Concurrencia estándar: máx **1** ausente a la vez |
-| RN4 | Excepción: máx **2** (vacaciones+permiso, o 2 permisos justificados) |
+| RN3 | Concurrencia **por grupo**: máx `cupo_normal = miembros_activos − min_presentes` ausentes simultáneos en el grupo |
+| RN4 | Excepción **por grupo**: hasta `cupo_normal + 1` ausentes; solo permiso con justificación (no vacaciones como excepción) |
 | RN5 | Privacidad: empleados no ven quién/por qué |
 | RN6 | Respaldo: acordar cobertura con un compañero antes de pedir permiso |
 | RN7 | Festivos de Colombia (Ley Emiliani) + días hábiles reales |
+
+> **Nota**: El modelo global de v1 ("máx 1/máx 2 en toda la oficina") fue reemplazado en v3 (PLAN_05) por el modelo por grupo. La fuente autoritativa es `src/app/domain.py::validar_solicitud`. Ver `agent_docs/reglas_concurrencia.md`.
 
 ## Stack Tecnológico (v1)
 
