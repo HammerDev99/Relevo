@@ -7,18 +7,21 @@ def seed() -> None:
     init_db()
     db = SessionLocal()
     
-    # 1. Crear el usuario ADMINISTRADOR adicional (COORDINADOR)
-    admin_correo = "coordinador@test.com"
-    admin = db.query(Empleado).filter_by(correo=admin_correo).first()
-    if not admin:
-        print("Creando usuario Coordinador Administrador...")
-        admin = Empleado(
-            nombre="COORDINADOR GENERAL",
-            correo=admin_correo,
-            password_hash=get_password_hash("admin123"),
-            rol="coordinacion"
-        )
-        db.add(admin)
+    # 1. Coordinadores
+    coordinadores = [
+        ("COORDINADOR GENERAL", "coordinador@test.com", "admin123"),
+        ("LUISA", "luisa@test.com", "luisa123"),
+        ("JOHN", "john@test.com", "john123"),
+    ]
+    for nombre, correo, password in coordinadores:
+        if not db.query(Empleado).filter_by(correo=correo).first():
+            print(f"Creando coordinador: {nombre}")
+            db.add(Empleado(
+                nombre=nombre,
+                correo=correo,
+                password_hash=get_password_hash(password),
+                rol="coordinacion",
+            ))
 
     # 2. Definición de Grupos (PLAN_05)
     grupos_data = {
