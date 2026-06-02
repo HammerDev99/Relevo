@@ -115,10 +115,8 @@ def show() -> None:
                     result = auth.change_password(current_password, new_password)
                     if result:
                         st.success("✅ Contraseña actualizada exitosamente")
-                        # Limpiar campos
-                        st.session_state.current_password = ""
-                        st.session_state.new_password = ""
-                        st.session_state.confirm_password = ""
+                        for k in ["current_password", "new_password", "confirm_password"]:
+                            st.session_state.pop(k, None)
                         st.rerun()
                     else:
                         st.error(
@@ -128,9 +126,8 @@ def show() -> None:
 
         with col_btn2:
             if st.button("Cancelar"):
-                st.session_state.current_password = ""
-                st.session_state.new_password = ""
-                st.session_state.confirm_password = ""
+                for k in ["current_password", "new_password", "confirm_password"]:
+                    st.session_state.pop(k, None)
                 st.rerun()
 
     st.info("💡 Recuerde usar una contraseña segura con al menos 6 caracteres.")
