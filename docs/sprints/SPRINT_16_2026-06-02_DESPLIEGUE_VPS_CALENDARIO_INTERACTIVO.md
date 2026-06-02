@@ -92,7 +92,23 @@ Este sprint cierra el Milestone v6 (despliegue productivo) y completa los dos í
 
 ---
 
-## 5. Pendientes diferidos → PLAN_08
+## 5. Mejoras y fixes post-sprint (misma sesión)
+
+| Commit | Tipo | Descripción |
+|--------|------|-------------|
+| `5a62c78` | chore | `.gitignore` + `CREDENCIALES_PRUEBA.md` (credenciales locales fuera del repo) |
+| `621cab1` | chore | Eliminar credenciales de prueba del README público |
+| `2b07f88` | fix | `session_state.pop()` para limpiar campos de contraseña; deshabilitar `/docs` en producción (`APP_ENV=production`) |
+| `18feda5` | fix | Deshabilitar botón `→` del calendario visualmente (lógica C6 preservada en comentarios) |
+| `15c57b1` | feat | Disponibilidad pública sin login + `require_auth()` en páginas protegidas; login en sidebar |
+| `59875bc` | feat | UX móvil calendario: CSS Grid nativo, celdas responsivas, leyenda compacta, `selectbox` año |
+| `9c2a80c` | feat | Navegación mes/año con botones `−`/`+` y `‹`/`›` en lugar de selectbox |
+| `0c5ea39` | feat | Coordinadores LUISA y JOHN añadidos al seed (patrón `nombre@test.com` / `nombre123`) |
+| `9ed81a3` | fix | Label mes/año sincronizado con estado antes de renderizar; botones con color neutro |
+
+---
+
+## 6. Pendientes diferidos → PLAN_08
 
 | ID | Hallazgo | Razón |
 |----|----------|-------|
