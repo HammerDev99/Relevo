@@ -13,7 +13,7 @@
 | **S14-C1** | Gestión de Ciclo de Vida de Datos (Eliminación) | `[x]` | tests/v1/test_models.py, tests/v1/test_solicitudes.py, tests/v1/test_coordinacion.py |
 | **S14-C2** | Reglas Avanzadas de Dominio (Control de Días) | `[x]` | tests/v1/test_domain.py |
 | **S14-C3** | Automatización y Experiencia de Usuario (UI/UX) | `[x]` | GUI (01_solicitudes.py) verificada visualmente |
-| **S14-C4** | Seguridad y Perfil de Usuario | `[ ]` | Pendiente (Endpoint /password y UI Perfil) |
+| **S14-C4** | Seguridad y Perfil de Usuario | `[x]` | Completado en SPRINT_14 |
 
 ## 2. Métricas del Sprint
 
@@ -30,7 +30,7 @@
 - 2026-05-27: SPEC-S14-C1 completado. Implementado borrado en cascada en SQLAlchemy, endpoints y botones en GUI. Test coverage verificado (+3 tests). Commit: `4479746`.
 - 2026-05-27: SPEC-S14-C2 completado. Agregada validación de duplicidad de días y límite de 3 días por permiso en `domain.py`. Test coverage verificado (+2 tests). Commit: `e04e75b`.
 - 2026-05-27: SPEC-S14-C3 completado. Implementada reactividad en fechas (mismo día para permisos, +22 días para vacaciones) y CSS responsivo para móviles. Commit: `a515995`.
-- 2026-05-27: Cierre parcial del Sprint por solicitud del usuario. SPEC-S14-C4 queda pendiente para el próximo ciclo.
+- 2026-05-27: Cierre parcial del Sprint por solicitud del usuario. SPEC-S14-C4 completado en SPRINT_14.
 
-**Estado del Sprint: CERRADO PARCIALMENTE**
+**Estado del Sprint: ✅ CERRADO**
 

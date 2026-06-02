@@ -38,10 +38,11 @@
 ### SPEC-S14-C4: Seguridad y Perfil de Usuario
 - **Descripción**: Permitir que los empleados gestionen sus credenciales.
 - **Criterios de Aceptación**:
-    - [ ] **Req 5**: Nuevo endpoint PATCH `/usuarios/me/password` en el backend.
-    - [ ] Sección de "Mi Perfil" o "Cambiar Contraseña" en la UI (puede ser dentro del portal principal o como una página nueva `04_perfil.py`).
-    - [ ] Requiere la contraseña actual para establecer una nueva.
-- **Estado**: `[ ]`
+    - [x] **Req 5**: Nuevo endpoint PATCH `/usuarios/me/password` en el backend.
+    - [x] Sección de "Mi Perfil" o "Cambiar Contraseña" en la UI (página nueva `04_perfil.py`).
+    - [x] Requiere la contraseña actual para establecer una nueva.
+- **Estado**: `[x]`
+- **Verificado**: 2026-05-27 | **Sprint**: SPRINT_14
 
 ---
 
@@ -56,15 +57,15 @@
 ## 3. Backlog de Hallazgos y Nuevas Funcionalidades (Diferidos)
 *Estos ítems han sido detectados durante las pruebas manuales y se integrarán formalmente en el próximo Planning (PLAN_07).*
 
-| ID | Hallazgo / Requerimiento | Estado | Prioridad |
-|----|-------|--------|-----------|
-| **SPEC-S15-C1** | **Regla Combinada**: Confirmar que es posible pedir vacaciones y permisos (hasta 3 días) en el mismo mes. | `[ ]` | P1 |
-| **SPEC-S15-C2** | **UX Calendario**: Configurar el calendario para que inicie en Domingo en la GUI de Disponibilidad. | `[ ]` | P2 |
-| **SPEC-S15-C3** | **UI Flexible**: Hacer que el campo de "Justificación/Motivo" sea opcional para todos los tipos de solicitud. | `[ ]` | P2 |
-| **SPEC-S15-C4** | **Visualización Selectiva**: En la vista de disponibilidad, no pintar festivos ni fines de semana para los rangos de permisos. | `[ ]` | P2 |
-| **SPEC-S15-C5** | **Tooltip de Grupos**: Mostrar hover con los nombres de los grupos que ocupan una fecha. Activación gestionable por Coordinación. | `[ ]` | P1 |
-| **SPEC-S15-C6** | **Calendario Interactivo**: Permitir clic en fecha para ver alerta de ocupación o redirigir a creación con fecha pre-cargada. | `[ ]` | P1 |
-| **SPEC-S15-C7** | **Optimización Móvil V2**: Corregir problemas de renderizado detectados en dispositivos móviles (Ref: Screenshot 151919). | `[ ]` | P0 |
+| ID | Hallazgo / Requerimiento | Estado | Sprint |
+|----|-------|--------|--------|
+| **SPEC-S15-C1** | **Regla Combinada**: vacaciones y permisos en el mismo mes. | ✅ | SPRINT_14 |
+| **SPEC-S15-C2** | **UX Calendario**: inicio en Domingo. | ✅ | SPRINT_14 |
+| **SPEC-S15-C3** | **UI Flexible**: justificación opcional. | ✅ | SPRINT_14 |
+| **SPEC-S15-C4** | **Visualización Selectiva**: no pintar festivos/fines de semana. | ✅ | SPRINT_14 |
+| **SPEC-S15-C5** | **Tooltip de Grupos**: hover con grupos ausentes, configurable. | ✅ | SPRINT_16 |
+| **SPEC-S15-C6** | **Calendario Interactivo**: clic en fecha → pre-carga solicitud. | ✅ | SPRINT_16 |
+| **SPEC-S15-C7** | **Optimización Móvil V2**: CSS responsivo, CSS Grid nativo. | ✅ | SPRINT_14 / SPRINT_16 |
 
 ---
 

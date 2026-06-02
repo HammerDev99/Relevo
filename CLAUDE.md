@@ -65,6 +65,11 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 | SPRINT_04 | Endpoints de solicitudes (Business Flow) | ✅ Done |
 | SPRINT_05 | Vista de disponibilidad anónima (RN5) | ✅ Done |
 | SPRINT_06 | Contenedorización y Guía de Despliegue | ✅ Done |
+| SPRINT_07 | GUI Autenticación (Streamlit login) | ✅ Done |
+| SPRINT_08 | GUI Solicitudes (formulario + listado) | ✅ Done |
+| SPRINT_09 | GUI Disponibilidad (calendario anónimo) | ✅ Done |
+| SPRINT_10 | GUI Coordinación (panel de control) | ✅ Done |
+| SPRINT_11 | Deuda técnica (tipos, linting, cobertura) | ✅ Done |
 | SPRINT_12 | Autogestión de Grupos y Panel de Config | ✅ Done |
 | SPRINT_13 | Mejoras UX móvil y reglas avanzadas | ✅ Done |
 | SPRINT_14 | Mejoras de calendario y seguridad | ✅ Done |
