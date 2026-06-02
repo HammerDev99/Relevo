@@ -1,10 +1,11 @@
 import streamlit as st
 
 from app.gui.services.auth_service import AuthService
+from app.gui.utils.auth_guard import require_auth
 
 
 def show() -> None:
-    """SPEC-S14-C4: Página de perfil de usuario con cambio de contraseña."""
+    require_auth()
     st.title("👤 Mi Perfil")
 
     # SPEC-S15-C7: CSS mejorado para diseño móvil responsivo

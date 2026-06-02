@@ -75,57 +75,43 @@ def main() -> None:
     if session_keys.IS_AUTHENTICATED not in st.session_state:
         st.session_state[session_keys.IS_AUTHENTICATED] = False
 
-    # --- Flujo de Autenticación ---
+    # Páginas siempre definidas
+    pg_disponibilidad = st.Page("pages/02_disponibilidad.py", title="Disponibilidad", icon="📅")
+
+    # --- Flujo según autenticación ---
     if not st.session_state[session_keys.IS_AUTHENTICATED]:
-        col1, col2, col3 = st.columns([1, 2, 1])
-        LOGO_URL = "https://www.ramajudicial.gov.co/image/layout_set_logo?img_id=11303&t=1716744000000"
-        with col2:
-            st.image(LOGO_URL, width=200)
-            st.title("Sistema Relevo")
-            st.subheader("Control de Vacaciones y Permisos")
-            
+        # Sin sesión: solo disponibilidad + formulario de login en sidebar
+        pg = st.navigation([pg_disponibilidad])
+
+        with st.sidebar:
+            st.image(
+                "https://www.ramajudicial.gov.co/image/layout_set_logo?img_id=11303&t=1716744000000",
+                width=160,
+            )
+            st.subheader("Iniciar Sesión")
             with st.form("login_form"):
                 email = st.text_input("Correo Institucional")
                 password = st.text_input("Contraseña", type="password")
-                submit = st.form_submit_button("Iniciar Sesión")
-                
-                if submit and auth.login(email, password):
-                    st.success("Acceso concedido")
+                submitted = st.form_submit_button("Entrar", use_container_width=True)
+                if submitted and auth.login(email, password):
                     st.rerun()
-    else:
-        # --- App Autenticada (Navegación Dinámica) ---
-        user_role = st.session_state.get(session_keys.USER_ROLE, "empleado")
-        
-        # Definición de páginas
-        pg_solicitudes = st.Page(
-            "pages/01_solicitudes.py",
-            title="Mis Solicitudes",
-            icon="📑"
-        )
-        pg_disponibilidad = st.Page(
-            "pages/02_disponibilidad.py",
-            title="Disponibilidad",
-            icon="📅"
-        )
-        pg_coordinacion = st.Page(
-            "pages/03_coordinacion.py",
-            title="Panel Control",
-            icon="🛡️"
-        )
-        pg_perfil = st.Page(
-            "pages/04_perfil.py",
-            title="Mi Perfil",
-            icon="👤"
-        )
 
-        # Filtrar por rol
-        pages = [pg_solicitudes, pg_disponibilidad, pg_perfil]
+        pg.run()
+
+    else:
+        # Con sesión: navegación completa
+        user_role = st.session_state.get(session_keys.USER_ROLE, "empleado")
+
+        pg_solicitudes = st.Page("pages/01_solicitudes.py", title="Mis Solicitudes", icon="📑")
+        pg_perfil = st.Page("pages/04_perfil.py", title="Mi Perfil", icon="👤")
+        pg_coordinacion = st.Page("pages/03_coordinacion.py", title="Panel Control", icon="🛡️")
+
+        pages = [pg_disponibilidad, pg_solicitudes, pg_perfil]
         if user_role == "coordinacion":
             pages.append(pg_coordinacion)
 
-        # Ejecutar navegación
         pg = st.navigation(pages)
-        
+
         with st.sidebar:
             st.write(f"Usuario: **{st.session_state.get(session_keys.USER_EMAIL)}**")
             st.write(f"Rol: `{user_role.upper()}`")

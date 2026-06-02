@@ -4,9 +4,11 @@ import streamlit as st
 
 from app.gui import session_keys
 from app.gui.services.solicitud_service import SolicitudService
+from app.gui.utils.auth_guard import require_auth
 
 
 def show() -> None:
+    require_auth()
     st.title("📑 Mis Solicitudes")
     
     # SPEC-S15-C7: CSS mejorado para diseño móvil responsivo

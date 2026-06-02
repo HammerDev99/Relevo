@@ -1,9 +1,11 @@
 import streamlit as st
 
 from app.gui.services.coordinacion_service import CoordinacionService
+from app.gui.utils.auth_guard import require_auth
 
 
 def show() -> None:
+    require_auth()
     st.title("🛡️ Panel de Configuración y Control")
     
     # SPEC-S15-C7: CSS mejorado para diseño móvil responsivo
