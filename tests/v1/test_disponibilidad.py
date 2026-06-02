@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.database import Base, get_db
 from app.main import app
-from app.models import Empleado, Solicitud
+from app.models import Empleado, Grupo, Solicitud
 
 # In-memory engine shared for tests
 test_engine = create_engine(
@@ -53,13 +53,17 @@ def client() -> Generator[TestClient, None, None]:
 
 
 def test_disponibilidad_sin_pii(client: TestClient, db_session: Session) -> None:
-    # Setup: 1 approved standard, 1 approved exception
+    """SPEC-S16-A1: sin sesión → vista general por grupos; RN5 preservado."""
+    # Grupo con 2 miembros, min_presentes=1 → cupo_normal=1, cupo_max=2
+    g = Grupo(nombre="G_Test_PII", min_presentes=1)
     emp1 = Empleado(nombre="Juan PII", correo="juan@test.com", password_hash="h")
     emp2 = Empleado(nombre="Maria PII", correo="maria@test.com", password_hash="h")
-    db_session.add_all([emp1, emp2])
+    emp1.grupos.append(g)
+    emp2.grupos.append(g)
+    db_session.add_all([g, emp1, emp2])
     db_session.commit()
 
-    # Juan is away (standard)
+    # Juan ausente Jan 1-2
     s1 = Solicitud(
         empleado_id=emp1.id,
         tipo="vacaciones",
@@ -68,7 +72,7 @@ def test_disponibilidad_sin_pii(client: TestClient, db_session: Session) -> None
         dias_habiles=2,
         estado="aprobada",
     )
-    # Maria is away (exception)
+    # Maria ausente Jan 2-3 (excepcion)
     s2 = Solicitud(
         empleado_id=emp2.id,
         tipo="permiso",
@@ -85,17 +89,72 @@ def test_disponibilidad_sin_pii(client: TestClient, db_session: Session) -> None
     assert response.status_code == 200
     data = response.json()
 
-    # 2026-01-01 should be OCUPADO (Juan standard)
+    # Jan 1: 1 ausente en G >= cupo_normal=1 → OCUPADO
     day1 = next(d for d in data if d["fecha"] == "2026-01-01")
     assert day1["estado"] == "OCUPADO"
+    assert day1["vista_general"] is True  # sin sesión → vista general
 
-    # 2026-01-02 should be EXCEPCIONAL (Juan + Maria)
+    # Jan 2: 2 ausentes en G >= cupo_max=2 → EXCEPCIONAL
     day2 = next(d for d in data if d["fecha"] == "2026-01-02")
     assert day2["estado"] == "EXCEPCIONAL"
+    assert day2["vista_general"] is True
 
-    # Verify NO PII
+    # RN5: sin PII
     str_response = response.text
     assert "Juan" not in str_response
     assert "Maria" not in str_response
     assert "PII" not in str_response
     assert "juan@test.com" not in str_response
+
+
+def test_disponibilidad_por_grupo_con_sesion(client: TestClient, db_session: Session) -> None:
+    """SPEC-S16-A1: con sesión el estado es relativo solo a los grupos del usuario."""
+    from app.auth import create_session_token
+
+    # G1: grupo del usuario (2 miembros, sin ausentes ese día)
+    g1 = Grupo(nombre="G1_Sesion", min_presentes=1)  # cupo_normal=1
+    # G2: otro grupo con un ausente (no pertenece al usuario)
+    g2 = Grupo(nombre="G2_Sesion", min_presentes=1)  # cupo_normal=1
+
+    emp_usuario = Empleado(nombre="Usuario", correo="usuario_ses@test.com", password_hash="h", activo=True)
+    emp_g1 = Empleado(nombre="Comp G1", correo="comp_g1_ses@test.com", password_hash="h", activo=True)
+    emp_g2a = Empleado(nombre="G2 Ausente", correo="g2a_ses@test.com", password_hash="h", activo=True)
+    emp_g2b = Empleado(nombre="G2 Otro", correo="g2b_ses@test.com", password_hash="h", activo=True)
+
+    emp_usuario.grupos.append(g1)
+    emp_g1.grupos.append(g1)
+    emp_g2a.grupos.append(g2)
+    emp_g2b.grupos.append(g2)
+
+    db_session.add_all([g1, g2, emp_usuario, emp_g1, emp_g2a, emp_g2b])
+    db_session.commit()
+
+    # emp_g2a ausente el 2026-04-06 (lunes) — solo afecta G2
+    s1 = Solicitud(
+        empleado_id=emp_g2a.id,
+        tipo="vacaciones",
+        fecha_inicio=date(2026, 4, 6),
+        fecha_fin=date(2026, 4, 6),
+        dias_habiles=1,
+        estado="aprobada",
+    )
+    db_session.add(s1)
+    db_session.commit()
+
+    # Vista sin sesión: evalúa todos los grupos → G2 OCUPADO → día OCUPADO
+    response_anonimo = client.get("/disponibilidad?anio=2026&mes=4")
+    assert response_anonimo.status_code == 200
+    data_anonimo = response_anonimo.json()
+    day6_anonimo = next(d for d in data_anonimo if d["fecha"] == "2026-04-06")
+    assert day6_anonimo["estado"] == "OCUPADO"
+    assert day6_anonimo["vista_general"] is True
+
+    # Vista con sesión de emp_usuario (solo en G1, que no tiene ausentes)
+    token = create_session_token({"user_id": emp_usuario.id})
+    response_sesion = client.get("/disponibilidad?anio=2026&mes=4", cookies={"session": token})
+    assert response_sesion.status_code == 200
+    data_sesion = response_sesion.json()
+    day6_sesion = next(d for d in data_sesion if d["fecha"] == "2026-04-06")
+    # G1 sin ausentes → DISPONIBLE; G2 no se evalúa para este usuario
+    assert day6_sesion["estado"] == "DISPONIBLE"
+    assert day6_sesion["vista_general"] is False
