@@ -1,6 +1,6 @@
 from app.auth import get_password_hash
 from app.database import SessionLocal, init_db
-from app.models import Empleado, Grupo
+from app.models import ConfiguracionApp, Empleado, Grupo
 
 
 def seed() -> None:
@@ -75,6 +75,12 @@ def seed() -> None:
         # Asignar grupos
         user.grupos = [grupos_db[gn] for gn in grp_nombres]
     
+    # 4. Configuración global (singleton id=1)
+    config = db.get(ConfiguracionApp, 1)
+    if not config:
+        print("Creando configuración global...")
+        db.add(ConfiguracionApp(id=1, mostrar_grupos_tooltip=True))
+
     db.commit()
     db.close()
     print("Seed de oficina (Autogestión V3) completado.")

@@ -3,10 +3,10 @@ from datetime import date
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Solicitud
+from app.models import Empleado, Solicitud
 from app.schemas.disponibilidad import DisponibilidadRead
 from relevo.festivos import es_festivo
 
@@ -28,10 +28,14 @@ def consultar_disponibilidad(
     fecha_fin_mes = date(anio, mes, num_dias)
 
     # Obtener todas las solicitudes aprobadas que traslapan con el mes
-    query = select(Solicitud).where(
-        Solicitud.estado == "aprobada",
-        Solicitud.fecha_inicio <= fecha_fin_mes,
-        Solicitud.fecha_fin >= fecha_inicio_mes
+    query = (
+        select(Solicitud)
+        .options(selectinload(Solicitud.empleado).selectinload(Empleado.grupos))
+        .where(
+            Solicitud.estado == "aprobada",
+            Solicitud.fecha_inicio <= fecha_fin_mes,
+            Solicitud.fecha_fin >= fecha_inicio_mes,
+        )
     )
     solicitudes = db.scalars(query).all()
 
@@ -63,10 +67,18 @@ def consultar_disponibilidad(
             # Se requiere tramitar como excepción si se quiere ese mismo día.
             estado = "OCUPADO"
 
+        # SPEC-S15-C5: Grupos ausentes (solo nombres, sin PII de empleados)
+        grupos_ausentes: list[str] = []
+        for s in ausentes:
+            for g in s.empleado.grupos:
+                if g.nombre not in grupos_ausentes:
+                    grupos_ausentes.append(g.nombre)
+
         resultado.append(DisponibilidadRead(
             fecha=actual,
             estado=estado,
-            razon=razon
+            razon=razon,
+            grupos_ausentes=grupos_ausentes,
         ))
         
     return resultado

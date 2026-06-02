@@ -55,10 +55,11 @@ def show() -> None:
     
     service = CoordinacionService()
     
-    tab_audit, tab_users, tab_groups = st.tabs([
-        "📜 Log de Solicitudes", 
-        "👥 Gestión de Usuarios", 
-        "🏗️ Configuración de Grupos"
+    tab_audit, tab_users, tab_groups, tab_config = st.tabs([
+        "📜 Log de Solicitudes",
+        "👥 Gestión de Usuarios",
+        "🏗️ Configuración de Grupos",
+        "⚙️ Configuración",
     ])
 
     # --- TAB 1: LOG DE SOLICITUDES ---
@@ -151,6 +152,25 @@ def show() -> None:
                        and service.actualizar_grupo(g["id"], {"min_presentes": new_min}):
                         st.success("Actualizado")
                         st.rerun()
+
+    # --- TAB 4: CONFIGURACIÓN GLOBAL ---
+    with tab_config:
+        st.subheader("⚙️ Configuración del Sistema")
+        config = service.obtener_configuracion()
+
+        with st.form("form_config"):
+            mostrar_tooltip = st.toggle(
+                "Mostrar grupos ausentes en tooltip del calendario",
+                value=config.get("mostrar_grupos_tooltip", True),
+                help="Cuando está activo, al pasar el cursor sobre una fecha ocupada "
+                     "se muestran los grupos con ausencias (sin revelar nombres).",
+            )
+            if st.form_submit_button("Guardar Configuración"):
+                if service.actualizar_configuracion({"mostrar_grupos_tooltip": mostrar_tooltip}):
+                    st.success("Configuración guardada")
+                    st.rerun()
+                else:
+                    st.error("Error al guardar la configuración")
 
 if __name__ == "__main__":
     show()

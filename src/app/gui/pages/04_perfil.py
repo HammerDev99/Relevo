@@ -134,3 +134,6 @@ def show() -> None:
                 st.rerun()
 
     st.info("💡 Recuerde usar una contraseña segura con al menos 6 caracteres.")
+
+if __name__ == "__main__":
+    show()

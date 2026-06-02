@@ -74,19 +74,21 @@
 ### SPEC-S15-C5: Tooltip de Grupos
 - **Descripción**: Mostrar hover con los nombres de los grupos que ocupan una fecha. Activación gestionable por Coordinación.
 - **Criterios de Aceptación**:
-    - [ ] Implementar tooltip al pasar el mouse sobre fechas ocupadas en `02_disponibilidad.py`.
-    - [ ] Mostrar nombres de grupos que tienen ausencias en esa fecha.
-    - [ ] Configuración en panel de coordinación para activar/desactivar tooltips.
-- **Estado**: `[ ]`
+    - [x] Implementar tooltip al pasar el mouse sobre fechas ocupadas en `02_disponibilidad.py`.
+    - [x] Mostrar nombres de grupos que tienen ausencias en esa fecha.
+    - [x] Configuración en panel de coordinación para activar/desactivar tooltips.
+- **Estado**: `[x]`
 - **Prioridad**: P1
+- **Verificado**: 2026-06-02 | **Sprint**: SPRINT_16
 
 ### SPEC-S15-C6: Calendario Interactivo
 - **Descripción**: Permitir clic en fecha para ver alerta de ocupación o redirigir a creación con fecha pre-cargada.
 - **Criterios de Aceptación**:
-    - [ ] Implementar interactividad al hacer clic en fechas del calendario en `02_disponibilidad.py`.
-    - [ ] Mostrar alerta con información de ocupación o redirigir a formulario de solicitud con fecha pre-cargada.
-- **Estado**: `[ ]`
+    - [x] Implementar interactividad al hacer clic en fechas del calendario en `02_disponibilidad.py`.
+    - [x] Mostrar alerta con información de ocupación o redirigir a formulario de solicitud con fecha pre-cargada.
+- **Estado**: `[x]`
 - **Prioridad**: P1
+- **Verificado**: 2026-06-02 | **Sprint**: SPRINT_16
 
 ### SPEC-S15-C7: Optimización Móvil V2
 - **Descripción**: Corregir problemas de renderizado detectados en dispositivos móviles (Ref: Screenshot 151919).
@@ -171,10 +173,10 @@
 
 ## 7. Hallazgos Diferidos
 
-| ID | Hallazgo | Razon |
-|----|----------|-------|
-| SPEC-S15-C5 | Tooltip de grupos | Alta complejidad técnica (Streamlit no soporta tooltips nativos) - Diferido a PLAN_08 |
-| SPEC-S15-C6 | Calendario interactivo | Alta complejidad técnica (requiere implementación custom) - Diferido a PLAN_08 |
+| ID | Hallazgo | Estado |
+|----|----------|--------|
+| SPEC-S15-C5 | Tooltip de grupos | ✅ Completado en SPRINT_16 (2026-06-02) |
+| SPEC-S15-C6 | Calendario interactivo | ✅ Completado en SPRINT_16 (2026-06-02) |
 
 ---
 

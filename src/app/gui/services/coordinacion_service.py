@@ -133,6 +133,29 @@ class CoordinacionService:
         except Exception:
             return False
 
+    # --- Configuración Global ---
+
+    @log_gui_action("CoordinacionService")
+    def obtener_configuracion(self) -> dict[str, Any]:
+        try:
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.get("/configuracion")
+                if response.status_code == 200:
+                    return cast(dict[str, Any], response.json())
+                return {}
+        except Exception:
+            return {}
+
+    @log_gui_action("CoordinacionService")
+    def actualizar_configuracion(self, data: dict[str, Any]) -> bool:
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.patch("/configuracion", json=data, headers=headers)
+                return response.status_code == 200
+        except Exception:
+            return False
+
     @log_gui_action("CoordinacionService")
     def actualizar_grupo(self, grupo_id: int, data: dict[str, Any]) -> bool:
         try:

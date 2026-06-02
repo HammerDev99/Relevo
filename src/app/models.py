@@ -78,8 +78,16 @@ class Solicitud(Base):
 
     # Relationships
     empleado: Mapped["Empleado"] = relationship(
-        back_populates="solicitudes", 
+        back_populates="solicitudes",
         foreign_keys=[empleado_id]
     )
     respaldo: Mapped[Optional["Empleado"]] = relationship(foreign_keys=[respaldo_id])
     procesada_por: Mapped[Optional["Empleado"]] = relationship(foreign_keys=[procesada_por_id])
+
+
+class ConfiguracionApp(Base):
+    """Singleton de configuración global de la aplicación."""
+    __tablename__ = "configuracion_app"
+
+    id: Mapped[int] = mapped_column(primary_key=True, default=1)
+    mostrar_grupos_tooltip: Mapped[bool] = mapped_column(Boolean, default=True)

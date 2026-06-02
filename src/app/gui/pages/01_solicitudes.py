@@ -57,18 +57,30 @@ def show() -> None:
     me = auth.get_me()
     mis_grupos = me.get("grupo_ids", []) if me else []
     
+    # SPEC-S15-C6: Leer fecha pre-seleccionada desde el calendario
+    fecha_presel_str = st.session_state.pop("fecha_preseleccionada", None)
+    fecha_presel = date.fromisoformat(fecha_presel_str) if fecha_presel_str else None
+    expander_abierto = fecha_presel is not None
+
+    if fecha_presel:
+        st.info(f"📌 Fecha pre-seleccionada desde el calendario: **{fecha_presel_str}**")
+
     # --- Formulario de Nueva Solicitud (S14-C3: Sin st.form para permitir reactividad) ---
-    with st.expander("➕ Nueva Solicitud", expanded=False):
+    with st.expander("➕ Nueva Solicitud", expanded=expander_abierto):
         tipo = st.selectbox("Tipo de Ausencia", ["vacaciones", "permiso"])
-        
+
         st.caption(
             "📅 Sugerencia: Configure su navegador en Español (Colombia) "
             "para ver el calendario iniciando en Domingo."
         )
-        
+
         col1, col2 = st.columns(2)
         with col1:
-            f_inicio = st.date_input("Fecha Inicio", min_value=date.today())
+            f_inicio = st.date_input(
+                "Fecha Inicio",
+                value=fecha_presel if fecha_presel else date.today(),
+                min_value=date.today(),
+            )
         
         with col2:
             if tipo == "vacaciones":
