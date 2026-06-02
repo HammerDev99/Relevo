@@ -25,3 +25,9 @@ desktop.ini
 *.db
 *.sqlite3
 data/database/
+
+# Credenciales y secretos locales
+CREDENCIALES_PRUEBA.md
+*.secrets
+.env
+.env.*
