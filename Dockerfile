@@ -56,14 +56,15 @@ ENV TZ=America/Bogota
 RUN mkdir -p data/database logs \
     && chown -R relevo:relevo /app
 
-# Copiar entrypoint
+# Copiar entrypoint y healthcheck
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+COPY docker-healthcheck.sh /docker-healthcheck.sh
+RUN chmod +x /docker-entrypoint.sh /docker-healthcheck.sh
 
-EXPOSE 8000
+EXPOSE 8000 8501
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD ["/docker-healthcheck.sh"]
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
