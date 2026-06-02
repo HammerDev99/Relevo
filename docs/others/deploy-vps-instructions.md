@@ -236,6 +236,78 @@ chmod +x ~/relevo-deploy/backup-relevo.sh
 
 ---
 
+## Fase 6 — Mantenimiento: Rotación de logs (SPEC-S15-D5)
+
+### 6.1 Logs de aplicación (volumen bind-mount)
+
+Los logs de la aplicación quedan en `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/logs/`.
+Configurar `logrotate` en el host para evitar que crezcan sin límite:
+
+```bash
+sudo cat > /etc/logrotate.d/relevo << 'EOF'
+/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/logs/*.log {
+    daily
+    rotate 14
+    compress
+    missingok
+    notifempty
+    copytruncate
+    su root root
+}
+EOF
+
+# Verificar configuración
+sudo logrotate -d /etc/logrotate.d/relevo
+```
+
+### 6.2 Logs de Docker (contenedores)
+
+Limitar el tamaño de los logs del daemon de Docker (stdout/stderr de los contenedores):
+
+```bash
+# En el VPS
+sudo mkdir -p /etc/docker
+sudo bash -c 'cat > /etc/docker/daemon.json << EOF
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF'
+
+sudo systemctl reload docker
+# Nota: requiere redeploy de los servicios para que aplique a los contenedores existentes
+```
+
+> Los nuevos contenedores creados después del reload usarán estos límites automáticamente.
+> Para aplicar a contenedores en ejecución: redeploy desde EasyPanel.
+
+---
+
+## Fase 7 — Mantenimiento: Backup y verificación (SPEC-S15-D6)
+
+El script de backup está documentado en la Fase 5. Para confirmar que está operativo:
+
+```bash
+# 1. Verificar que la entrada de crontab existe
+crontab -l | grep relevo
+# Esperado: 0 2 * * * ~/relevo-deploy/backup-relevo.sh >> /var/log/relevo-backup.log 2>&1
+
+# 2. Ejecutar backup manual para verificar (primera vez)
+~/relevo-deploy/backup-relevo.sh
+# Debe mostrar: OK: /home/sprintadmin/backups/relevo/relevo_YYYYMMDD_HHMMSS.db.gz (X bytes)
+
+# 3. Verificar que el archivo se creó
+ls -lh ~/backups/relevo/
+
+# 4. Verificar log automático (al día siguiente)
+tail -20 /var/log/relevo-backup.log
+```
+
+---
+
 ## Troubleshooting
 
 ### GUI no conecta con API
@@ -287,4 +359,7 @@ docker service ls | grep traefik
 - [ ] Ambos servicios montan los MISMOS paths de volumen del host
 - [ ] `curl https://relevo.sprintjudicial.com` responde `200`
 - [ ] Login funcional con datos de producción
-- [ ] Script de backup configurado en crontab
+- [ ] Script de backup configurado en crontab (Fase 5)
+- [ ] `logrotate` configurado para logs de aplicación (Fase 6.1)
+- [ ] Docker daemon.json con max-size configurado (Fase 6.2)
+- [ ] Primer backup manual ejecutado y verificado (Fase 7)
