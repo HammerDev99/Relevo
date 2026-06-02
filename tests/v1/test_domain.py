@@ -277,6 +277,27 @@ def test_validar_duplicidad_dias(db_session: Session) -> None:
     assert "Ya tienes una solicitud" in result.error
 
 
+def test_validar_empleado_sin_grupo_permitido(db_session: Session) -> None:
+    """SPEC-S16-A4: un empleado sin grupo puede solicitar; se omite concurrencia de grupo."""
+    emp1 = Empleado(nombre="SinGrupo", correo="sg@test.com", password_hash="h", activo=True)
+    resp = Empleado(nombre="Resp", correo="resp@test.com", password_hash="h", activo=True)
+    db_session.add_all([emp1, resp])
+    db_session.commit()
+
+    # Permiso de 1 día hábil (2026-09-01 es martes), sin grupos asignados
+    nueva = Solicitud(
+        empleado_id=emp1.id,
+        tipo="permiso",
+        fecha_inicio=date(2026, 9, 1),
+        fecha_fin=date(2026, 9, 1),
+        respaldo_id=resp.id,
+        justificacion="cita médica",
+    )
+
+    result = validar_solicitud(db_session, nueva)
+    assert isinstance(result, Success)
+
+
 def test_validar_vacaciones_permisos_mismo_mes(db_session: Session) -> None:
     """SPEC-S15-C1: Validar que un empleado puede pedir vacaciones y permisos en el mismo mes."""
     g = Grupo(nombre="G", min_presentes=0)

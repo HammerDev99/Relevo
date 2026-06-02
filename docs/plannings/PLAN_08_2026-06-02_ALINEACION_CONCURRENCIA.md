@@ -81,6 +81,30 @@ Durante la verificación cruzada de reglas se detectó una **inconsistencia estr
     - [ ] Nuevo documento `agent_docs/reglas_concurrencia.md` con la fórmula de cupo, tabla de grupos del seed y ejemplos resueltos.
 - **Estado**: `[ ]` | **Prioridad**: P2
 
+#### SPEC-S16-B5: Re-alinear la comunicación a empleados al modelo por grupo
+- **Descripción**: El mensaje a empleados redactado en la sesión describe el modelo **global** ("máx 1 ausente, máx 2") — incorrecto bajo el modelo por grupo.
+- **Criterios de Aceptación**:
+    - [ ] Re-redactar el mensaje explicando que la disponibilidad depende del **grupo de trabajo** (cada grupo mantiene un mínimo de presentes).
+    - [ ] Corregir la nota de §8 de este plan que afirma que el mensaje "describe el comportamiento real".
+- **Estado**: `[ ]` | **Prioridad**: P1
+
+#### SPEC-S16-B6: Reconciliar composición de grupos (seed vs PLAN_05)
+- **Descripción**: `PLAN_05` define G3 con 3 miembros (cupo 1); `seed.py` tenía 4 (BRIGITH "por defecto", cupo 2). La doc y la realidad de producción no coincidían.
+- **Decisión (2026-06-02)**: BRIGITH **queda fuera de todos los grupos**. `seed.py` actualizado (`BRIGITH: []`).
+- **Criterios de Aceptación**:
+    - [x] BRIGITH sin grupo en `seed.py`.
+    - [x] Consecuencia funcional resuelta en SPEC-S16-A4 (empleado sin grupo puede solicitar).
+    - [ ] Reflejar la composición canónica resultante en `agent_docs/reglas_concurrencia.md` (B4): G3 queda en 3 miembros (JORGE, YESENIA, DANIELA → cupo 1).
+- **Estado**: `[~]` (parcial — falta B4) | **Prioridad**: P1
+
+#### SPEC-S16-A4: Manejo de empleados sin grupo ✅
+- **Descripción**: `domain.py` bloqueaba a cualquier empleado sin grupo. Con BRIGITH fuera de grupos, no podría crear solicitudes.
+- **Decisión (2026-06-02)**: un empleado sin grupo **sí puede solicitar**, aplicando solo saldos (RN2), respaldo (RN6) y duplicidad; **se omite la concurrencia de grupo**.
+- **Criterios de Aceptación**:
+    - [x] `domain.py` omite la validación de grupo cuando el empleado no tiene grupos (no bloquea).
+    - [x] Test `test_validar_empleado_sin_grupo_permitido` (Success).
+- **Estado**: `[x]` | **Verificado**: 2026-06-02 (implementado en esta sesión, previo a PLAN_08)
+
 ### Fase C — Operación VPS (Backlog diferido SPRINT_16 / AUDIT_09)
 
 #### SPEC-S15-D5: Rotación de logs en VPS
@@ -184,9 +208,9 @@ El calendario hoy es **anónimo y público** (un estado por día). En el modelo 
 | # | Acción | Dónde | Por qué | Estado |
 |---|--------|-------|---------|:------:|
 | M1 | **Redeploy** de `relevo-api` y `relevo-gui` con la imagen más reciente | EasyPanel | Activar auth guard, `/docs` off, UX móvil, navegación mes/año, coordinadores LUISA/JOHN | ❓ |
-| M2 | **Quitar el dominio `api.relevo.sprintjudicial.com`** del servicio `relevo-api` | EasyPanel → relevo-api → Domains | La API no debe ser accesible desde internet (solo interna `relevo-api:8000`) | ❓ |
+| M2 | **Quitar el dominio `api.relevo.sprintjudicial.com`** del servicio `relevo-api` | EasyPanel → relevo-api → Domains | La API no debe ser accesible desde internet (solo interna `relevo-api:8000`) | ✅ hecho 2026-06-02 |
 | M3 | **Confirmar `APP_ENV=production`** en variables de `relevo-api` | EasyPanel env | Deshabilita `/docs`, `/redoc`, `/openapi.json` en producción | ✅ visto en `docker inspect` |
-| M4 | **Configurar webhook auto-deploy** GitHub→EasyPanel (push a `main` → redeploy) | GitHub Settings/Webhooks + EasyPanel | Evitar redeploys manuales tras cada commit | ❓ |
+| M4 | **Configurar webhook auto-deploy** GitHub→EasyPanel (push a `main` → redeploy) | GitHub Settings/Webhooks + EasyPanel | Evitar redeploys manuales tras cada commit | ✅ hecho 2026-06-02 |
 | M5 | Mantener `CREDENCIALES_PRUEBA.md` solo local (gitignored) | Local | Contiene usuarios/contraseñas de prueba; incluye coordinadores LUISA y JOHN | ℹ️ |
 
 ### 9.3 Verificación de aislamiento de la API (tras M2)

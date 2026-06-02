@@ -48,7 +48,7 @@ def seed() -> None:
         "JORGE": ["G3: Reparto Const. y Penal"],
         "YESENIA": ["G3: Reparto Const. y Penal"],
         "FABIAN": ["G4: Notificaciones y Archivo"],
-        "BRIGITH": ["G3: Reparto Const. y Penal"], # Asignada a G3 por defecto
+        "BRIGITH": [],  # Sin grupo asignado (decisión 2026-06-02)
         "DANIELA": ["G3: Reparto Const. y Penal"],
         "JACKSON": ["G2: Fichas EJPMS"],
         "FLOR": ["G1: Comunicaciones y Atención"],

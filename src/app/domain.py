@@ -94,10 +94,10 @@ def validar_solicitud(db: Session, nueva: Solicitud) -> Result[Solicitud, str]:
     empleado = db.get(Empleado, nueva.empleado_id)
     if not empleado:
         return Failure("Empleado no encontrado")
-    
-    if not empleado.grupos:
-        return Failure("El empleado no pertenece a ningún grupo de trabajo")
 
+    # Empleado sin grupo (SPEC-S16-A4, decisión 2026-06-02): puede solicitar
+    # aplicando solo saldos (RN2), respaldo (RN6) y duplicidad. No se evalúa
+    # concurrencia de grupo (el bucle se omite al no tener grupos).
     for grupo in empleado.grupos:
         # N = total miembros activos del grupo
         miembros_ids = [m.id for m in grupo.miembros if m.activo]
