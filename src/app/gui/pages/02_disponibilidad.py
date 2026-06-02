@@ -127,9 +127,6 @@ def show() -> None:
                 elif razon:
                     titulo = razon
 
-                # SPEC-S15-C6: celda clickeable via st.button con CSS
-                es_habil = razon not in ["Festivo", "Fin de semana"]
-
                 with cols[d]:
                     st.markdown(
                         f"""<div style="
@@ -140,19 +137,20 @@ def show() -> None:
                         </div>""",
                         unsafe_allow_html=True,
                     )
-                    # Botón de selección solo en días hábiles (SPEC-S15-C6)
-                    if es_habil and st.button(
-                        "→",
-                        key=f"sel_{fecha_str}",
-                        help=titulo if titulo else f"Seleccionar {fecha_str}",
-                        use_container_width=True,
-                    ):
-                            st.session_state["fecha_preseleccionada"] = fecha_str
-                            st.session_state["detalle_fecha"] = {
-                                "fecha": fecha_str,
-                                "estado": estado,
-                                "grupos": grupos,
-                            }
+                    # SPEC-S15-C6: botón de selección (deshabilitado visualmente, lógica preservada)
+                    # _es_habil = razon not in ["Festivo", "Fin de semana"]
+                    # if _es_habil and st.button(
+                    #     "→",
+                    #     key=f"sel_{fecha_str}",
+                    #     help=titulo if titulo else f"Seleccionar {fecha_str}",
+                    #     use_container_width=True,
+                    # ):
+                    #         st.session_state["fecha_preseleccionada"] = fecha_str
+                    #         st.session_state["detalle_fecha"] = {
+                    #             "fecha": fecha_str,
+                    #             "estado": estado,
+                    #             "grupos": grupos,
+                    #         }
 
                 current_day += 1
             else:
