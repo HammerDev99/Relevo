@@ -41,7 +41,7 @@ Durante la verificación cruzada de reglas se detectó una **inconsistencia estr
     - [ ] Se preserva RN5: la respuesta no expone PII; `grupos_ausentes` sigue mostrando solo nombres de grupo.
 - **Estado**: `[ ]`
 - **Prioridad**: P0
-- **Decisión de diseño pendiente**: ver §3 (Opción A vs B).
+- **Decisión de diseño**: ✅ **Opción A** (calendario consciente de sesión) — aprobada 2026-06-02. Ver §3.
 
 #### SPEC-S16-A2: Validar composición de excepción (RN4)
 - **Descripción**: Endurecer `domain.py` para que la excepción (`cupo_normal + 1`) solo se permita cuando la composición sea "vacaciones + permiso" o "2 permisos justificados" (con justificación no vacía).
@@ -99,6 +99,8 @@ Durante la verificación cruzada de reglas se detectó una **inconsistencia estr
 
 ## 3. Decisión de Diseño Clave: Calendario por Grupo (Opción A vs B)
 
+> ✅ **DECISIÓN APROBADA (2026-06-02): Opción A — Calendario consciente de sesión.**
+
 El calendario hoy es **anónimo y público** (un estado por día). En el modelo por grupo, el estado de un día **depende del grupo de quien mira**. Dos opciones:
 
 | | **Opción A — Consciente de sesión** *(recomendada)* | **Opción B — Desglose por grupo** |
@@ -118,7 +120,7 @@ El calendario hoy es **anónimo y público** (un estado por día). En el modelo 
 |---------|---------|---------------|-----------------|
 | `CLAUDE.md` | Tabla "Reglas de negocio" (RN3, RN4) | "máx 1 / máx 2" global | Concurrencia por grupo (`min_presentes`) + composición RN4 |
 | `README.md` | "📋 Reglas de Negocio" → Concurrencia | Tabla "toda la oficina" + ejemplo JACKSON/JORGE incorrecto | Tabla por grupo + ejemplo corregido |
-| `README.md` | "Calendario de disponibilidad" | Describe estado global | Describir según Opción A/B |
+| `README.md` | "Calendario de disponibilidad" | Describe estado global | Describir Opción A (consciente de sesión) |
 | `agent_docs/architecture.md` | Estándar de comunicación / dominio | No menciona modelo de concurrencia | Documentar modelo por grupo y rol de `domain.py` |
 | `agent_docs/reglas_concurrencia.md` | (nuevo) | No existe | Fórmula de cupo + tabla de grupos + ejemplos |
 | `docs/others/deploy-vps-instructions.md` | Operación | Sin logrotate | Añadir rotación de logs (D5) |
@@ -154,7 +156,7 @@ El calendario hoy es **anónimo y público** (un estado por día). En el modelo 
 
 | Riesgo | Impacto | Mitigación |
 |--------|:-------:|------------|
-| Calendario por grupo rompe el patrón anónimo actual | Alto | Decidir Opción A/B antes de codificar (§3) |
+| Calendario por grupo rompe el patrón anónimo actual | Alto | ✅ Resuelto: Opción A aprobada (§3). Visitante sin sesión ve capa informativa general |
 | Test `test_disponibilidad_sin_pii` asume modelo global | Medio | Actualizar fixture con grupos; preservar aserción de no-PII |
 | Cambio de RN3/RN4 puede confundir a usuarios ya capacitados | Medio | Comunicar el cambio; el mensaje a empleados ya describe el comportamiento real |
 | Composición RN4 puede tener casos límite (multi-grupo) | Medio | Cubrir con tests Success/Failure explícitos |
