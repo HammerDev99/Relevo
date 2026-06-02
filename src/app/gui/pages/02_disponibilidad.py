@@ -104,16 +104,58 @@ def show() -> None:
     config = CoordinacionService().obtener_configuracion()
     mostrar_tooltip = config.get("mostrar_grupos_tooltip", True)
 
-    # --- Selectores de Mes y Año ---
+    # --- Navegación de Mes y Año con botones ---
     hoy = date.today()
-    col_y, col_m = st.columns([1, 2])
-    with col_y:
-        anio = st.selectbox("Año", options=list(range(2024, 2031)), index=hoy.year - 2024)
-    with col_m:
-        meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                 "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-        mes_nombre = st.selectbox("Mes", options=meses, index=hoy.month - 1)
-        mes_index = meses.index(mes_nombre) + 1
+    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+
+    if "cal_anio" not in st.session_state:
+        st.session_state.cal_anio = hoy.year
+    if "cal_mes" not in st.session_state:
+        st.session_state.cal_mes = hoy.month
+
+    col_y1, col_y2, col_y3, col_gap, col_m1, col_m2, col_m3 = st.columns([1, 2, 1, 0.3, 1, 3, 1])
+
+    with col_y1:
+        clicked_menos = st.button("−", key="anio_menos", use_container_width=True)
+        if clicked_menos and st.session_state.cal_anio > 2024:
+            st.session_state.cal_anio -= 1
+    with col_y2:
+        st.markdown(
+            f"<div style='text-align:center;font-weight:700;padding:6px 0;font-size:1rem;'>"
+            f"{st.session_state.cal_anio}</div>",
+            unsafe_allow_html=True,
+        )
+    with col_y3:
+        clicked_mas = st.button("+", key="anio_mas", use_container_width=True)
+        if clicked_mas and st.session_state.cal_anio < 2030:
+            st.session_state.cal_anio += 1
+
+    with col_m1:
+        if st.button("‹", key="mes_ant", use_container_width=True):
+            if st.session_state.cal_mes == 1:
+                st.session_state.cal_mes = 12
+                if st.session_state.cal_anio > 2024:
+                    st.session_state.cal_anio -= 1
+            else:
+                st.session_state.cal_mes -= 1
+    with col_m2:
+        st.markdown(
+            f"<div style='text-align:center;font-weight:700;padding:6px 0;font-size:1rem;'>"
+            f"{meses[st.session_state.cal_mes - 1]}</div>",
+            unsafe_allow_html=True,
+        )
+    with col_m3:
+        if st.button("›", key="mes_sig", use_container_width=True):
+            if st.session_state.cal_mes == 12:
+                st.session_state.cal_mes = 1
+                if st.session_state.cal_anio < 2030:
+                    st.session_state.cal_anio += 1
+            else:
+                st.session_state.cal_mes += 1
+
+    anio = st.session_state.cal_anio
+    mes_index = st.session_state.cal_mes
 
     # --- Leyenda compacta ---
     st.markdown("""
