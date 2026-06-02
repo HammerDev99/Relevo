@@ -55,7 +55,7 @@ def client() -> Generator[TestClient, None, None]:
 def test_disponibilidad_sin_pii(client: TestClient, db_session: Session) -> None:
     """SPEC-S16-A1: sin sesión → vista general por grupos; RN5 preservado."""
     # Grupo con 2 miembros, min_presentes=1 → cupo_normal=1, cupo_max=2
-    g = Grupo(nombre="G_Test_PII", min_presentes=1)
+    g = Grupo(nombre="G_Enero", min_presentes=1)
     emp1 = Empleado(nombre="Juan PII", correo="juan@test.com", password_hash="h")
     emp2 = Empleado(nombre="Maria PII", correo="maria@test.com", password_hash="h")
     emp1.grupos.append(g)
@@ -116,10 +116,18 @@ def test_disponibilidad_por_grupo_con_sesion(client: TestClient, db_session: Ses
     # G2: otro grupo con un ausente (no pertenece al usuario)
     g2 = Grupo(nombre="G2_Sesion", min_presentes=1)  # cupo_normal=1
 
-    emp_usuario = Empleado(nombre="Usuario", correo="usuario_ses@test.com", password_hash="h", activo=True)
-    emp_g1 = Empleado(nombre="Comp G1", correo="comp_g1_ses@test.com", password_hash="h", activo=True)
-    emp_g2a = Empleado(nombre="G2 Ausente", correo="g2a_ses@test.com", password_hash="h", activo=True)
-    emp_g2b = Empleado(nombre="G2 Otro", correo="g2b_ses@test.com", password_hash="h", activo=True)
+    emp_usuario = Empleado(
+        nombre="Usuario", correo="usuario_ses@test.com", password_hash="h", activo=True
+    )
+    emp_g1 = Empleado(
+        nombre="Comp G1", correo="comp_g1_ses@test.com", password_hash="h", activo=True
+    )
+    emp_g2a = Empleado(
+        nombre="G2 Ausente", correo="g2a_ses@test.com", password_hash="h", activo=True
+    )
+    emp_g2b = Empleado(
+        nombre="G2 Otro", correo="g2b_ses@test.com", password_hash="h", activo=True
+    )
 
     emp_usuario.grupos.append(g1)
     emp_g1.grupos.append(g1)
