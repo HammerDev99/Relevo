@@ -84,8 +84,15 @@ Sprint de corrección estructural: alinea el calendario de disponibilidad y toda
 
 ---
 
-## 5. Próximos pasos
+## 5. Auditoría
 
-- **Check**: Auditoría AUDIT_10 post-implementación PLAN_08 (tasa objetivo ≥ 85%).
+**AUDIT_10** (`docs/validate/AUDIT_10_2026-06-02_GATE_V7_ALINEACION_CONCURRENCIA.md`): **APROBADO**
+- Tasa SDD: 90.9% (20/22 evaluaciones CONFORME+DJ)
+- 1 DEFECTO corregido (H1: validación rango anio/mes) → commit `dad5acf`
+- 60 tests pasando post-audit
+
+## 6. Próximos pasos
+
 - **Operación VPS manual**: Ejecutar rotación de logs y primer backup en el VPS (acciones M1 pendientes en §9 de PLAN_08).
 - **Redeploy VPS** recomendado para activar los cambios de disponibilidad por grupo en producción.
+- **PLAN_09**: Incorporar ítems diferidos del AUDIT_10 (cookie secure, tooltip scope, test multi-grupo, extraer `get_empleado_opcional`).
