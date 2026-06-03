@@ -40,7 +40,8 @@ La excepción (`cupo_normal + 1`) solo se permite bajo las siguientes condicione
 
 1. La solicitud debe ser **permiso** (no vacaciones).
 2. La solicitud debe llevar **justificación** no vacía.
-3. La composición resultante debe ser: **vacaciones + permiso** o **permiso + permiso** (ambos justificados).
+
+Las composiciones permitidas por RN4 (vacaciones+permiso, o 2 permisos justificados) se garantizan implícitamente: la condición 1 excluye vacaciones como excepción, y la condición 2 exige justificación en todos los casos. El conteo del bucle de concurrencia verifica que no se supere `cupo_max`.
 
 > Validado en `domain.py` antes del bucle de concurrencia (`SPEC-S16-A2`).
 
