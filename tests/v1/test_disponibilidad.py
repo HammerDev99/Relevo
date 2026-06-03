@@ -166,3 +166,11 @@ def test_disponibilidad_por_grupo_con_sesion(client: TestClient, db_session: Ses
     # G1 sin ausentes → DISPONIBLE; G2 no se evalúa para este usuario
     assert day6_sesion["estado"] == "DISPONIBLE"
     assert day6_sesion["vista_general"] is False
+
+
+def test_disponibilidad_parametros_invalidos_422(client: TestClient, db_session: Session) -> None:
+    """AUDIT-H1: mes fuera de rango y anio fuera de rango deben retornar 422."""
+    assert client.get("/disponibilidad?anio=2026&mes=13").status_code == 422
+    assert client.get("/disponibilidad?anio=2026&mes=0").status_code == 422
+    assert client.get("/disponibilidad?anio=2019&mes=1").status_code == 422
+    assert client.get("/disponibilidad?anio=2101&mes=1").status_code == 422

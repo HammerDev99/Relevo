@@ -1,7 +1,7 @@
 import calendar
 from datetime import date
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -55,9 +55,9 @@ def _estado_para_grupos(
 
 @router.get("", response_model=list[DisponibilidadRead])
 def consultar_disponibilidad(
-    anio: int,
-    mes: int,
     request: Request,
+    anio: int = Query(..., ge=2020, le=2100),
+    mes: int = Query(..., ge=1, le=12),
     db: Session = Depends(get_db),
 ) -> list[DisponibilidadRead]:
     """
