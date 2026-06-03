@@ -1,44 +1,77 @@
 # Infraestructura de Despliegue — Relevo
 
-Este documento detalla los mecanismos para exponer y desplegar la aplicación Relevo.
+## Estado actual (v7, 2026-06-02)
 
-## 1. Demo Rápida (Cloudflare Tunnel)
+**Producción activa** en VPS `31.97.146.7` (red Rama Judicial):
+- `relevo-api` → FastAPI en puerto 8000 (interno, sin dominio público)
+- `relevo-gui` → Streamlit en `relevo.sprintjudicial.com:8501` (HTTPS vía Traefik)
+- BD SQLite en volumen bind-mount: `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db`
 
-Para pruebas rápidas sin configuración de servidor, se utiliza **Cloudflare Quick Tunnels**.
+---
 
-### Archivos Relacionados
-- `docker-compose.tunnel.yml`: Define los servicios `relevo-api`, `relevo-gui` y el contenedor `tunnel` que solicita la URL pública.
-- `docker-entrypoint.sh`: Contiene los flags `--server.enableCORS=false` y `--server.enableXsrfProtection=false` necesarios para que Streamlit acepte conexiones a través del túnel.
+## 1. Arquitectura de Servicios Docker
 
-### Comando de Ejecución
+```
+Internet → Traefik (HTTPS) → relevo-gui (:8501)
+                                   │
+                          [red interna Docker]
+                                   │
+                            relevo-api (:8000)
+                                   │
+                          [volumen SQLite compartido]
+```
+
+- Ambos servicios usan la **misma imagen** Docker; el modo se selecciona con `RELEVO_MODE=api|gui`.
+- La GUI **nunca** accede a la BD directamente — solo llama al API vía HTTP.
+- `SECRET_KEY` idéntica en ambos servicios (firmado de cookies de sesión).
+
+### Variables de entorno clave
+
+| Variable | api | gui |
+|----------|:---:|:---:|
+| `RELEVO_MODE` | `api` | `gui` |
+| `SECRET_KEY` | ✅ (igual) | ✅ (igual) |
+| `DATABASE_URL` | `sqlite:////app/data/database/relevo.db` | igual |
+| `APP_ENV` | `production` | — |
+| `TZ` | `America/Bogota` | `America/Bogota` |
+
+---
+
+## 2. Demo Rápida (Cloudflare Tunnel)
+
+Para pruebas sin servidor:
+
 ```powershell
 docker compose -f docker-compose.tunnel.yml up
 ```
-*Al ejecutarlo, buscar en los logs la URL `https://*.trycloudflare.com`.*
 
-## 2. Persistencia (Base de Datos)
+Buscar en logs la URL `https://*.trycloudflare.com`.
 
-El sistema utiliza **SQLite 3**.
+---
 
-### Fuente de Verdad
-- **Ubicación**: `data/database/relevo.db`
-- **Configuración Docker**: Este directorio está montado como un volumen persistente.
-- **Seguridad**: El archivo está incluido en `.gitignore` para evitar que datos sensibles de los empleados lleguen al repositorio de código.
+## 3. Desarrollo Local
 
-## 3. Configuración de Módulos (Shadowing Fix)
+```powershell
+docker-compose -f docker-compose.dev.yml up --build
+# API en localhost:8000, GUI en localhost:8501
+```
 
-Para evitar que Python confunda el archivo de entrada con el paquete `app`, se utiliza la siguiente estructura:
-- **Paquete Raíz**: `src/app/`
-- **Entrada GUI**: `src/app/gui/portal.py` (Renombrado desde `app.py` para evitar colisiones).
+---
 
-## 4. Estrategia de Migración y Preservación de Datos (Transición v2 a v3)
+## 4. Persistencia (Base de Datos)
 
-Dado que se introdujeron cambios en el esquema (Nuevas entidades de `Grupo`), el proceso de despliegue en producción debe asegurar la integridad del archivo persistente `relevo.db`.
+- **SQLite 3** — una sola réplica (no escala horizontalmente).
+- **Dev local**: `data/database/relevo.db` (en `.gitignore`).
+- **VPS**: bind-mount en `/etc/easypanel/projects/.../relevo-db-data/relevo.db`, owner `1000:1000`.
+- **Backup**: script `~/relevo-deploy/backup-relevo.sh` en crontab (2 AM diario). Ver Fase 7 en `docs/others/deploy-vps-instructions.md`.
 
-1. **Esquema No Destructivo**: La directiva `Base.metadata.create_all(bind=engine)` de SQLAlchemy no borra las tablas preexistentes. Exclusivamente agrega las nuevas tablas requeridas por la v3 (`grupos` y `empleado_grupo`).
-2. **Backfill de Datos**: Al momento de arrancar la nueva imagen del contenedor, el script `docker-entrypoint.sh` invoca a `src/app/seed.py`. Este script oficia como un migrador automático de estado de producción: 
-    - Busca a los empleados preexistentes en la base de datos (por correo electrónico).
-    - Mantiene intacta la fila y las contraseñas.
-    - Carga en la base de datos las entidades de los nuevos `Grupos`.
-    - Establece y actualiza las relaciones Many-to-Many entre los empleados existentes y los nuevos grupos de manera idempotente.
-3. **Preservación de Solicitudes**: Las solicitudes históricas (tabla `solicitudes`) mantendrán sus llaves foráneas (`empleado_id`) sin requerir migración de estado ya que el motor v3 evalúa el historial contra el grupo actual del empleado para cálculos en tiempo real.
+---
+
+## 5. Guías de Referencia
+
+| Tarea | Documento |
+|-------|-----------|
+| Despliegue inicial en VPS | `docs/others/deploy-vps-instructions.md` |
+| Rotación de logs (logrotate + daemon.json) | `docs/others/deploy-vps-instructions.md` §6 |
+| Backup automatizado | `docs/others/deploy-vps-instructions.md` §7 |
+| Acciones operativas manuales | `docs/plannings/PLAN_08_*.md` §9 |

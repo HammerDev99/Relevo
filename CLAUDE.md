@@ -48,6 +48,15 @@ docker-compose -f docker-compose.dev.yml up --build
 $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 ```
 
+## Métricas actuales (post-AUDIT_10, 2026-06-02)
+
+| Métrica | Valor |
+|---------|-------|
+| Tests | **60** (pytest -x ✅) |
+| Linting | ruff clean ✅ |
+| Última auditoría | AUDIT_10 — APROBADO (90.9% SDD) |
+| Auditorías totales | 10 (todas APROBADAS) |
+
 ## Estado actual
 
 - **Milestone v1 ✅**: Back-end completo, motor de reglas, seguridad y contenedorización.

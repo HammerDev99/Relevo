@@ -80,12 +80,13 @@ Cada archivo AUDIT contiene en un solo documento:
 | 07 | 2026-05-27 | Gate V4 (Parcial) | APROBADO | 87% |
 | 08 | 2026-05-27 | Gate V5 (Calificación UX) | APROBADO | 100% |
 | 09 | 2026-05-28 | Gate VPS (Compatibilidad) | APROBADO | 100% |
+| 10 | 2026-06-02 | Gate V7 (Alineación Concurrencia) | APROBADO | 90.9% |
 
 ## Próxima Auditoría
 
-**AUDIT_10**: Gate F6 — PLAN_08 (Backlog de mejoras)
+**AUDIT_11**: Gate PLAN_09 — Backlog diferido del AUDIT_10.
 
-Fecha estimada: Post-implementación de SPEC-S15-C5 (Tooltip grupos), SPEC-S15-C6 (Calendario interactivo) y mejoras de infraestructura (rotación logs, backup automatizado).
+Ítems principales: cookie `secure` por ambiente, tooltip scope multi-grupo, test HECTOR G1+G4, extraer `get_empleado_opcional` a auth.py.
 
 ---
 
