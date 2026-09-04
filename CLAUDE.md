@@ -49,13 +49,13 @@ docker-compose -f docker-compose.dev.yml up --build
 $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 ```
 
-## Métricas actuales (post-SPRINT_18, 2026-09-04)
+## Métricas actuales (post-SPRINT_19, 2026-09-04)
 
 | Métrica | Valor |
 |---------|-------|
-| Tests | **76** (pytest -x ✅) |
+| Tests | **78** (pytest -x ✅) |
 | Linting | ruff clean ✅ · mypy clean ✅ |
-| Cobertura | **86%** (655 líneas verificables; GUI excluida) |
+| Cobertura | **88%** (657 líneas verificables; GUI excluida) |
 | Última auditoría | AUDIT_11 — APROBADO (84.2% SDD neto) |
 | Auditorías totales | 11 (todas APROBADAS) |
 
@@ -68,6 +68,7 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 - **Milestone v5 ✅**: Mejoras de calendario (inicio domingo, tooltips, interactividad), UX móvil avanzada y seguridad (cambio de contraseña).
 - **Milestone v6 ✅**: Despliegue VPS productivo (EasyPanel + migración BD), tooltip de grupos configurable, calendario interactivo con pre-carga de fecha.
 - **Milestone v7 ✅**: Alineación modelo de concurrencia por grupo (calendario Opción A, RN4 composición), documentación sincronizada, operación VPS (logrotate + backup).
+- **Milestone v9 ✅**: Deuda técnica de AUDIT_11 — módulo `roles.py`, `BaseAPIService` para los servicios GUI, `get_empleado_opcional()`, y medición de cobertura habilitada (88%).
 - **Milestone v8 ✅**: Alta de empleados desde el panel de Coordinación (cierra el CRUD de personal) y visibilidad de nombres de ausentes en el calendario para usuarios autenticados (RN5 reformulada en PLAN_09).
 
 ### Historial de Sprints
@@ -92,3 +93,4 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 | SPRINT_16 | Despliegue productivo VPS + calendario interactivo (C5+C6) | ✅ Done |
 | SPRINT_17 | Alineación concurrencia por grupo, RN4, documentación (PLAN_08) | ✅ Done |
 | SPRINT_18 | Alta de usuarios en GUI + nombres en calendario (PLAN_09) | ✅ Done |
+| SPRINT_19 | Deuda técnica: roles, clase base GUI, cobertura (PLAN_10) | ✅ Done |
