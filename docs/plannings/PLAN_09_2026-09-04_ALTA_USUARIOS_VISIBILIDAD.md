@@ -204,6 +204,33 @@ La restricción está implementada en tres capas:
 - **Prioridad**: P0 — induce a error sobre el estado de una credencial
 - **Estado**: `[x]` | **Verificado**: 2026-09-04
 
+### Fase E — UX móvil (P1)
+
+> Origen: uso real en celular tras el despliegue de v8 (2026-09-04).
+
+#### SPEC-S18-E1: Carga lenta del calendario en móvil
+- **Causa**: la GUI no usaba caché de Streamlit en ninguna página. Cada clic en la navegación de mes disparaba un rerun completo con **dos peticiones HTTP secuenciales** (`obtener_configuracion` + `consultar`). Sobre la red de la Rama Judicial en móvil, esa latencia se percibe como lentitud.
+- **Archivos**: `src/app/gui/pages/02_disponibilidad.py`
+- **Criterios de Aceptación**:
+    - [x] `_cargar_configuracion()` con `@st.cache_data(ttl=300)` — la configuración global cambia rara vez.
+    - [x] `_cargar_disponibilidad()` con `@st.cache_data(ttl=60)` — navegar a un mes ya visto no repite la petición.
+    - [x] `usuario_id` forma parte de la clave de caché: la respuesta depende de la sesión (RN5).
+    - [x] El servicio no se modifica; la caché vive en la página (cachear métodos de instancia con `self` es frágil).
+- **Prioridad**: P1
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
+
+#### SPEC-S18-E2: El hover no funciona en pantallas táctiles
+- **Causa**: el detalle del día se expone con el atributo `title=`, que depende de `:hover`. **Los dispositivos táctiles no disparan hover**, así que la información de SPEC-S18-A2 y D1 era inaccesible en celular.
+- **Archivos**: `src/app/gui/pages/02_disponibilidad.py`
+- **Criterios de Aceptación**:
+    - [x] Listado desplegable bajo el calendario con los días que tienen ausencias.
+    - [x] La lógica del texto se extrae a `_construir_detalle()` y se **reutiliza** en el tooltip y el listado (sin duplicación).
+    - [x] El tooltip de escritorio se conserva sin cambios de comportamiento.
+    - [x] Festivos y fines de semana se excluyen del listado.
+- **Prioridad**: P1
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
+- **Efecto colateral**: `_construir_detalle()` aplica *Extract Method* sobre el bucle de render, tratando el hallazgo **H13** de AUDIT_11.
+
 ---
 
 ## 3. Decisión de Diseño: reformulación de RN5
@@ -259,7 +286,7 @@ La restricción está implementada en tres capas:
 
 ## 6. Criterio de Cierre del Milestone
 
-- [x] Los 12 SPECs marcados `[x]` con commit asociado.
+- [x] Los 14 SPECs marcados `[x]` con commit asociado.
 - [x] `pytest -x` verde; sin regresión sobre los 60 tests previos.
 - [x] `ruff check src tests scripts` limpio.
 - [ ] Alta de un empleado verificada de extremo a extremo desde la GUI.

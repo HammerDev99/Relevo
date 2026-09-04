@@ -1,17 +1,24 @@
+import os
+
 from app.auth import get_password_hash
 from app.database import SessionLocal, init_db
 from app.models import ConfiguracionApp, Empleado, Grupo
+
+# AUDIT-H7: la contraseña inicial de las cuentas de coordinación no debe estar
+# en el código. Se toma de RELEVO_SEED_PASSWORD; el fallback solo aplica en
+# desarrollo y debe rotarse desde Mi Perfil tras el primer ingreso.
+_PASSWORD_COORDINACION = os.getenv("RELEVO_SEED_PASSWORD", "cambiar-en-produccion")
 
 
 def seed() -> None:
     init_db()
     db = SessionLocal()
-    
+
     # 1. Coordinadores
     coordinadores = [
-        ("COORDINADOR GENERAL", "coordinador@test.com", "admin123"),
-        ("LUISA", "luisa@test.com", "luisa123"),
-        ("JOHN", "john@test.com", "john123"),
+        ("COORDINADOR GENERAL", "coordinador@test.com", _PASSWORD_COORDINACION)#,
+        #("LUISA", "luisa@test.com", _PASSWORD_COORDINACION),
+        #("JOHN", "john@test.com", _PASSWORD_COORDINACION),
     ]
     for nombre, correo, password in coordinadores:
         if not db.query(Empleado).filter_by(correo=correo).first():

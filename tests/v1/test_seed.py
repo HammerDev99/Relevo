@@ -108,7 +108,8 @@ def test_seed_asigna_grupos_en_primera_ejecucion(db_session: Session) -> None:
     assert brigith is not None
     assert brigith.grupos == []
 
-    assert db_session.query(Empleado).count() == 14  # 3 coordinadores + 11 empleados
+    # 1 coordinador activo en el seed (LUISA y JOHN ya existen en produccion) + 11
+    assert db_session.query(Empleado).count() == 12
 
 
 def test_seed_no_duplica_ni_altera_usuarios_nuevos(db_session: Session) -> None:
@@ -138,3 +139,29 @@ def test_seed_no_duplica_ni_altera_usuarios_nuevos(db_session: Session) -> None:
     mariana = db_session.query(Empleado).filter_by(correo="mariana@test.com").first()
     assert mariana is not None
     assert [g.nombre for g in mariana.grupos] == ["G3: Reparto Const. y Penal"]
+
+
+def test_seed_password_coordinacion_desde_entorno(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """AUDIT-H7: la contrasena de coordinacion no debe estar hardcodeada."""
+    import importlib
+
+    from app.auth import verify_password
+
+    monkeypatch.setenv("RELEVO_SEED_PASSWORD", "Secreta-Del-Entorno-2026")
+
+    import app.seed as seed_module
+
+    importlib.reload(seed_module)
+    monkeypatch.setattr(seed_module, "SessionLocal", TestingSessionLocal)
+    monkeypatch.setattr(seed_module, "init_db", lambda: None)
+    seed_module.seed()
+
+    coord = db_session.query(Empleado).filter_by(correo="coordinador@test.com").first()
+    assert coord is not None
+    assert verify_password("Secreta-Del-Entorno-2026", coord.password_hash)
+    # La credencial que estaba hardcodeada ya no sirve
+    assert not verify_password("admin123", coord.password_hash)
+
+    importlib.reload(seed_module)

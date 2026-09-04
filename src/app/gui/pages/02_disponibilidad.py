@@ -1,11 +1,57 @@
 import calendar
 import html
 from datetime import date
+from typing import Any
 
 import streamlit as st
 
+from app.gui import session_keys
 from app.gui.services.coordinacion_service import CoordinacionService
 from app.gui.services.disponibilidad_service import DisponibilidadService
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def _cargar_configuracion() -> dict[str, Any]:
+    """SPEC-S18-E1: la configuración global cambia rara vez; se cachea 5 min.
+
+    Sin esto, cada clic en la navegación de mes disparaba una petición HTTP
+    extra, lo que en móvil sobre la red judicial se percibe como lentitud.
+    """
+    return CoordinacionService().obtener_configuracion()
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _cargar_disponibilidad(anio: int, mes: int, usuario_id: int | None) -> list[dict[str, Any]]:
+    """SPEC-S18-E1: cachea el mes consultado; navegar atrás no repite la petición.
+
+    `usuario_id` entra en la clave de caché porque la respuesta depende de la
+    sesión (RN5: nombres y `estado_grupo_propio` varían según el usuario).
+    """
+    return DisponibilidadService().consultar(anio, mes)
+
+
+def _construir_detalle(dato: dict[str, Any], mostrar_tooltip: bool) -> str:
+    """Texto informativo de un día (SPEC-S15-C5, S18-A2, S18-D1).
+
+    Se usa tanto en el `title=` del calendario (hover, escritorio) como en el
+    listado táctil de SPEC-S18-E2, para no duplicar la lógica.
+    """
+    razon = dato.get("razon")
+    if razon in ["Festivo", "Fin de semana"]:
+        return str(razon)
+
+    partes = []
+    if dato.get("empleados_ausentes"):
+        partes.append(f"Ausentes: {', '.join(dato['empleados_ausentes'])}")
+    if mostrar_tooltip and dato.get("grupos_ausentes"):
+        partes.append(f"Grupos con ausencias: {', '.join(dato['grupos_ausentes'])}")
+    # SPEC-S18-D1: avisar si el cupo propio sigue libre aunque el día aparezca
+    # ocupado por saturación de otro grupo.
+    estado_propio = dato.get("estado_grupo_propio")
+    if estado_propio and estado_propio != dato.get("estado"):
+        partes.append(f"Tu grupo: {estado_propio}")
+
+    return " | ".join(partes) or (razon or "")
 
 
 def show() -> None:
@@ -112,8 +158,7 @@ def show() -> None:
     </style>
     """, unsafe_allow_html=True)
 
-    service = DisponibilidadService()
-    config = CoordinacionService().obtener_configuracion()
+    config = _cargar_configuracion()
     mostrar_tooltip = config.get("mostrar_grupos_tooltip", True)
 
     # --- Navegación de Mes y Año con botones ---
@@ -194,12 +239,14 @@ def show() -> None:
     """, unsafe_allow_html=True)
 
     # --- Obtener Datos ---
-    datos = service.consultar(anio, mes_index)
+    datos = _cargar_disponibilidad(
+        anio, mes_index, st.session_state.get(session_keys.USER_ID)
+    )
     if not datos:
         st.warning("No se pudieron cargar los datos de disponibilidad.")
         return
 
-    mapa_datos: dict[str, dict] = {d["fecha"]: d for d in datos}
+    mapa_datos: dict[str, dict[str, Any]] = {d["fecha"]: d for d in datos}
 
     # --- Cabecera días (SPEC-S15-C2: inicia en Domingo) ---
     dias_semana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
@@ -213,6 +260,8 @@ def show() -> None:
     offset_domingo = (primer_dia_semana + 1) % 7
 
     celdas_html = ""
+    # SPEC-S18-E2: se acumulan para el listado táctil (en móvil no hay hover)
+    detalles_mes: list[tuple[int, str, str]] = []
 
     # Celdas vacías al inicio
     for _ in range(offset_domingo):
@@ -233,9 +282,6 @@ def show() -> None:
         )
         estado = dato["estado"]
         razon = dato.get("razon")
-        grupos = dato.get("grupos_ausentes", [])
-        ausentes = dato.get("empleados_ausentes", [])
-        estado_propio = dato.get("estado_grupo_propio")
 
         # SPEC-S15-C4: festivos / fines de semana en gris
         if razon in ["Festivo", "Fin de semana"]:
@@ -247,21 +293,9 @@ def show() -> None:
         else:
             bg, fg = "#dc3545", "white"
 
-        # SPEC-S15-C5: tooltip de grupos | SPEC-S18-A2: nombres de ausentes
-        titulo = ""
-        if razon in ["Festivo", "Fin de semana"]:
-            titulo = razon
-        else:
-            partes = []
-            if ausentes:
-                partes.append(f"Ausentes: {', '.join(ausentes)}")
-            if mostrar_tooltip and grupos:
-                partes.append(f"Grupos con ausencias: {', '.join(grupos)}")
-            # SPEC-S18-D1: avisar si el cupo propio sigue libre aunque el día
-            # aparezca ocupado por saturación de otro grupo.
-            if estado_propio and estado_propio != estado:
-                partes.append(f"Tu grupo: {estado_propio}")
-            titulo = " | ".join(partes) or (razon or "")
+        titulo = _construir_detalle(dato, mostrar_tooltip)
+        if titulo and razon not in ["Festivo", "Fin de semana"]:
+            detalles_mes.append((dia, estado, titulo))
 
         # El tooltip se inyecta con unsafe_allow_html: escapar el contenido
         tooltip = f' title="{html.escape(titulo, quote=True)}"' if titulo else ""
@@ -271,6 +305,18 @@ def show() -> None:
         )
 
     st.markdown(f'<div class="cal-grid">{celdas_html}</div>', unsafe_allow_html=True)
+
+    # SPEC-S18-E2: los dispositivos táctiles no disparan :hover, por lo que el
+    # atributo title= del calendario es inaccesible en móvil. Este listado
+    # expone la misma información sin depender del puntero.
+    if detalles_mes:
+        icono = {"DISPONIBLE": "🟢", "OCUPADO": "🟡", "EXCEPCIONAL": "🔴"}
+        with st.expander(f"📋 Detalle de días con ausencias ({len(detalles_mes)})"):
+            for dia_num, estado_dia, texto in detalles_mes:
+                st.markdown(
+                    f"**{icono.get(estado_dia, '•')} {dia_num} de "
+                    f"{meses[mes_index - 1]}** — {texto}"
+                )
 
     # SPEC-S15-C6: Panel de detalle (lógica preservada, activable con botones cuando se reactive)
     detalle = st.session_state.get("detalle_fecha")

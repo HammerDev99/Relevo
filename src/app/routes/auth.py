@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 from app.auth import create_session_token, get_empleado_actual, get_password_hash, verify_password
 from app.database import get_db
 from app.models import Empleado
-from app.schemas.usuarios import PasswordChangeRequest, UsuarioRead
+from app.schemas.usuarios import (
+    LONGITUD_MINIMA_PASSWORD,
+    PasswordChangeRequest,
+    UsuarioRead,
+)
 from relevo.logger import get_logger
 
 logger = get_logger(__name__)
@@ -81,10 +85,13 @@ def cambiar_password(
         )
     
     # Validar longitud mínima de la nueva contraseña
-    if len(request_data.new_password) < 6:
+    if len(request_data.new_password) < LONGITUD_MINIMA_PASSWORD:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La nueva contraseña debe tener al menos 6 caracteres"
+            detail=(
+                f"La nueva contraseña debe tener al menos "
+                f"{LONGITUD_MINIMA_PASSWORD} caracteres"
+            )
         )
     
     # Actualizar el hash de la contraseña

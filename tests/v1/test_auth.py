@@ -225,7 +225,7 @@ def test_cambiar_password_misma_contrasena(db_session: Session, client: TestClie
 def test_cambiar_password_contrasena_corta(db_session: Session, client: TestClient) -> None:
     """SPEC-S14-C4: Test cambio de contraseña con contraseña muy corta."""
     old_pwd = "password123"
-    new_pwd = "12345"  # 5 caracteres (menos del mínimo de 6)
+    new_pwd = "1234567"  # 7 caracteres (menos del minimo unificado de 8, AUDIT-H6)
     h = get_password_hash(old_pwd)
     emp = Empleado(nombre="Juan", correo="juan@test.com", password_hash=h, rol="empleado")
     db_session.add(emp)
@@ -240,4 +240,4 @@ def test_cambiar_password_contrasena_corta(db_session: Session, client: TestClie
         json={"current_password": old_pwd, "new_password": new_pwd}
     )
     assert response.status_code == 400
-    assert "La nueva contraseña debe tener al menos 6 caracteres" in response.json()["detail"]
+    assert "al menos 8 caracteres" in response.json()["detail"]
