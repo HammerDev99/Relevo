@@ -59,57 +59,57 @@ La restricción está implementada en tres capas:
 - **Descripción**: Añadir el DTO de entrada para el alta de empleados.
 - **Archivos**: `src/app/schemas/usuarios.py`
 - **Criterios de Aceptación**:
-    - [ ] `UsuarioCreate` con campos: `nombre: str`, `correo: EmailStr`, `password: str`, `rol: str = "empleado"`, `grupo_ids: list[int] = []`.
-    - [ ] `model_config = ConfigDict(frozen=True)` — inmutabilidad (regla crítica 1).
-    - [ ] Validación de longitud mínima de contraseña (8 caracteres).
-    - [ ] Validación de `rol` restringido a `empleado` / `coordinacion`.
+    - [x] `UsuarioCreate` con campos: `nombre: str`, `correo: EmailStr`, `password: str`, `rol: str = "empleado"`, `grupo_ids: list[int] = []`.
+    - [x] `model_config = ConfigDict(frozen=True)` — inmutabilidad (regla crítica 1).
+    - [x] Validación de longitud mínima de contraseña (8 caracteres).
+    - [x] Validación de `rol` restringido a `empleado` / `coordinacion`.
 - **Prioridad**: P0
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `5225e96`
 
 #### SPEC-S18-B2: Endpoint `POST /coordinacion/usuarios`
 - **Descripción**: Crear el endpoint de alta, protegido por `get_coordinador`, reutilizando el patrón de `crear_grupo`.
 - **Archivos**: `src/app/routes/coordinacion.py` (sección "Gestión de Usuarios")
 - **Criterios de Aceptación**:
-    - [ ] Requiere rol coordinación (`Depends(get_coordinador)`); un empleado recibe 403.
-    - [ ] Contraseña almacenada con `get_password_hash()`; nunca en claro.
-    - [ ] Correo duplicado → HTTP 400 con mensaje claro (no `IntegrityError` sin capturar).
-    - [ ] `grupo_ids` asigna la relación M:N reutilizando el patrón de `actualizar_usuario`.
-    - [ ] Responde `UsuarioRead` (sin `password_hash`).
+    - [x] Requiere rol coordinación (`Depends(get_coordinador)`); un empleado recibe 403.
+    - [x] Contraseña almacenada con `get_password_hash()`; nunca en claro.
+    - [x] Correo duplicado → HTTP 400 con mensaje claro (no `IntegrityError` sin capturar).
+    - [x] `grupo_ids` asigna la relación M:N reutilizando el patrón de `actualizar_usuario`.
+    - [x] Responde `UsuarioRead` (sin `password_hash`).
 - **Prioridad**: P0
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `5225e96`
 
 #### SPEC-S18-B3: Método `crear_usuario()` en el servicio GUI
 - **Descripción**: Añadir el cliente HTTP, calcado de `crear_grupo()`.
 - **Archivos**: `src/app/gui/services/coordinacion_service.py`
 - **Criterios de Aceptación**:
-    - [ ] Decorado con `@log_gui_action("CoordinacionService")`, consistente con los métodos vecinos.
-    - [ ] Propaga el `detail` del error al usuario mediante `st.error` (p. ej. correo duplicado).
-    - [ ] Retorna `bool` como el resto de métodos del servicio.
+    - [x] Decorado con `@log_gui_action("CoordinacionService")`, consistente con los métodos vecinos.
+    - [x] Propaga el `detail` del error al usuario mediante `st.error` (p. ej. correo duplicado).
+    - [x] Retorna `bool` como el resto de métodos del servicio.
 - **Prioridad**: P0
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `5225e96`
 
 #### SPEC-S18-B4: Formulario de alta en la pestaña *Personal de la Oficina*
 - **Descripción**: Añadir el expander de alta, replicando el de *Crear Nuevo Grupo*.
 - **Archivos**: `src/app/gui/pages/03_coordinacion.py` (`tab_users`)
 - **Criterios de Aceptación**:
-    - [ ] Expander "Registrar Nuevo Empleado" al inicio de `tab_users`, antes del listado.
-    - [ ] Campos: nombre, correo, contraseña (`type="password"`), rol (`selectbox`), grupos (`multiselect`).
-    - [ ] Reutiliza `opciones_grupos`, ya calculado en la pestaña.
-    - [ ] Tras el alta exitosa: `st.success` + `st.rerun()`.
+    - [x] Expander "Registrar Nuevo Empleado" al inicio de `tab_users`, antes del listado.
+    - [x] Campos: nombre, correo, contraseña (`type="password"`), rol (`selectbox`), grupos (`multiselect`).
+    - [x] Reutiliza `opciones_grupos`, ya calculado en la pestaña.
+    - [x] Tras el alta exitosa: `st.success` + `st.rerun()`.
 - **Prioridad**: P0
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `5225e96`
 
 #### SPEC-S18-B5: Tests de alta de usuarios
 - **Archivos**: `tests/v1/test_coordinacion.py`
 - **Criterios de Aceptación**:
-    - [ ] Success: coordinación crea empleado → 200, persiste, hash verificable con `verify_password`.
-    - [ ] Success: alta con `grupo_ids` asigna correctamente la relación M:N.
-    - [ ] Failure: correo duplicado → 400.
-    - [ ] Failure: empleado sin rol coordinación → 403.
-    - [ ] Failure: contraseña menor a 8 caracteres → 422.
-    - [ ] `pytest -x` sin regresión (60 tests previos).
+    - [x] Success: coordinación crea empleado → 200, persiste, hash verificable con `verify_password`.
+    - [x] Success: alta con `grupo_ids` asigna correctamente la relación M:N.
+    - [x] Failure: correo duplicado → 400.
+    - [x] Failure: empleado sin rol coordinación → 403.
+    - [x] Failure: contraseña menor a 8 caracteres → 422.
+    - [x] `pytest -x` sin regresión (60 tests previos).
 - **Prioridad**: P0
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `5225e96`
 
 ### Fase A — Visibilidad de Nombres en el Calendario (P1)
 
@@ -117,42 +117,42 @@ La restricción está implementada en tres capas:
 - **Descripción**: Añadir `empleados_ausentes` a la respuesta de disponibilidad, poblado **solo** si hay sesión válida.
 - **Archivos**: `src/app/schemas/disponibilidad.py`, `src/app/routes/disponibilidad.py`
 - **Criterios de Aceptación**:
-    - [ ] `DisponibilidadRead` incorpora `empleados_ausentes: list[str] = []`.
-    - [ ] Con sesión válida: contiene los nombres de los ausentes del día.
-    - [ ] **Sin sesión: lista vacía**. El endpoint no requiere autenticación, por lo que los nombres nunca deben viajar a un cliente no autenticado.
-    - [ ] **No se expone `tipo` ni `justificacion`** — solo el nombre.
-    - [ ] Se reutiliza el `selectinload(Solicitud.empleado)` ya presente; sin consultas nuevas.
+    - [x] `DisponibilidadRead` incorpora `empleados_ausentes: list[str] = []`.
+    - [x] Con sesión válida: contiene los nombres de los ausentes del día.
+    - [x] **Sin sesión: lista vacía**. El endpoint no requiere autenticación, por lo que los nombres nunca deben viajar a un cliente no autenticado.
+    - [x] **No se expone `tipo` ni `justificacion`** — solo el nombre.
+    - [x] Se reutiliza el `selectinload(Solicitud.empleado)` ya presente; sin consultas nuevas.
 - **Prioridad**: P1
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `7ecb7f9`
 
 #### SPEC-S18-A2: Mostrar nombres en el tooltip del calendario
 - **Descripción**: Extender el tooltip existente (SPEC-S15-C5) para incluir nombres.
 - **Archivos**: `src/app/gui/pages/02_disponibilidad.py`
 - **Criterios de Aceptación**:
-    - [ ] El `title` del día ocupado incluye los nombres cuando `empleados_ausentes` no está vacío.
-    - [ ] Se preserva el comportamiento actual de `grupos_ausentes` y del flag `mostrar_grupos_tooltip`.
-    - [ ] Los nombres se escapan como HTML (el tooltip se inyecta con `unsafe_allow_html`).
-    - [ ] Días festivos y fines de semana no muestran nombres.
+    - [x] El `title` del día ocupado incluye los nombres cuando `empleados_ausentes` no está vacío.
+    - [x] Se preserva el comportamiento actual de `grupos_ausentes` y del flag `mostrar_grupos_tooltip`.
+    - [x] Los nombres se escapan como HTML (el tooltip se inyecta con `unsafe_allow_html`).
+    - [x] Días festivos y fines de semana no muestran nombres.
 - **Prioridad**: P1
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `7ecb7f9`
 
 #### SPEC-S18-A3: Actualizar el contrato RN5 en la documentación
 - **Archivos**: `CLAUDE.md`, `README.md`, `agent_docs/reglas_concurrencia.md`, `agent_docs/architecture.md`
 - **Criterios de Aceptación**:
-    - [ ] `CLAUDE.md`: RN5 y la regla crítica 4 reflejan la nueva redacción de §3.
-    - [ ] Se documenta la fecha y el motivo del cambio de contrato (trazabilidad).
-    - [ ] `README.md` y `agent_docs/` quedan consistentes con el nuevo alcance.
+    - [x] `CLAUDE.md`: RN5 y la regla crítica 4 reflejan la nueva redacción de §3.
+    - [x] Se documenta la fecha y el motivo del cambio de contrato (trazabilidad).
+    - [x] `README.md` y `agent_docs/` quedan consistentes con el nuevo alcance.
 - **Prioridad**: P1
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `7ecb7f9`
 
 #### SPEC-S18-A4: Reemplazar el test de PII por el test del nuevo contrato
 - **Archivos**: `tests/v1/test_disponibilidad.py`
 - **Criterios de Aceptación**:
-    - [ ] `test_disponibilidad_sin_pii` se **reformula**, no se elimina: sigue verificando que **sin sesión** la respuesta no contiene nombres.
-    - [ ] Test nuevo: **con sesión**, `empleados_ausentes` contiene los nombres esperados.
-    - [ ] Test nuevo: la respuesta **nunca** contiene la justificación, ni con sesión.
+    - [x] `test_disponibilidad_sin_pii` se **reformula**, no se elimina: sigue verificando que **sin sesión** la respuesta no contiene nombres.
+    - [x] Test nuevo: **con sesión**, `empleados_ausentes` contiene los nombres esperados.
+    - [x] Test nuevo: la respuesta **nunca** contiene la justificación, ni con sesión.
 - **Prioridad**: P1
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `7ecb7f9`
 
 ---
 
@@ -209,9 +209,9 @@ La restricción está implementada en tres capas:
 
 ## 6. Criterio de Cierre del Milestone
 
-- [ ] Los 9 SPECs marcados `[x]` con commit asociado.
-- [ ] `pytest -x` verde; sin regresión sobre los 60 tests previos.
-- [ ] `ruff check src tests scripts` limpio.
+- [x] Los 9 SPECs marcados `[x]` con commit asociado.
+- [x] `pytest -x` verde; sin regresión sobre los 60 tests previos.
+- [x] `ruff check src tests scripts` limpio.
 - [ ] Alta de un empleado verificada de extremo a extremo desde la GUI.
-- [ ] Documentación sincronizada con la nueva RN5.
+- [x] Documentación sincronizada con la nueva RN5.
 - [ ] AUDIT_11 con veredicto APROBADO (tasa SDD ≥ 85%).
