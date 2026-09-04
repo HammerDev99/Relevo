@@ -10,7 +10,7 @@ Sistema diseñado para la coordinación de vacaciones y permisos en dependencias
   - Saldo de 3 días de permiso al mes.
   - Control de concurrencia (máximo 1 ausente estándar, hasta 2 en excepciones).
   - Validación de compañero de respaldo obligatorio.
-- **Privacidad (RN5)**: Calendario de disponibilidad anónimo que permite planificar sin exponer datos sensibles.
+- **Privacidad (RN5)**: El calendario nunca expone el motivo ni el tipo de la ausencia. Los nombres de los ausentes se muestran solo a usuarios autenticados; sin sesión la vista es anónima (por grupos).
 - **Portal de Coordinación**: Herramientas para que jueces y jefes de despacho aprueben o rechacen solicitudes con visibilidad completa.
 - **Arquitectura Profesional**: Backend en FastAPI, Frontend en Streamlit y persistencia en SQLAlchemy 2.0.
 
@@ -102,7 +102,7 @@ El calendario muestra el estado de disponibilidad de cada día:
 - **Con sesión iniciada**: estado relativo a los grupos del usuario. Si G3 tiene cupo lleno pero G2 está disponible, un empleado de G2 verá ese día como 🟢 Disponible.
 - **Sin sesión** (vista pública): vista informativa general — estado más restrictivo entre todos los grupos.
 
-Cuando el tooltip de grupos está activo (configurable desde el Panel de Coordinación), al pasar el cursor sobre un día ocupado se muestran los **grupos** con ausencias — nunca nombres ni motivos (RN5: privacidad).
+Al pasar el cursor sobre un día ocupado, un usuario autenticado ve los **nombres** de quienes están ausentes. Si además el tooltip de grupos está activo (configurable desde el Panel de Coordinación), se muestran también los **grupos** con ausencias. El **motivo y el tipo** de la ausencia nunca se exponen, y sin sesión iniciada no se muestran nombres (RN5, reformulada en PLAN_09).
 
 ### Respaldo obligatorio
 

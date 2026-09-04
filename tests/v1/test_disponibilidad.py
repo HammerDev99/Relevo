@@ -53,7 +53,7 @@ def client() -> Generator[TestClient, None, None]:
 
 
 def test_disponibilidad_sin_pii(client: TestClient, db_session: Session) -> None:
-    """SPEC-S16-A1: sin sesión → vista general por grupos; RN5 preservado."""
+    """SPEC-S18-A1: sin sesion no se exponen nombres (RN5 reformulada en PLAN_09)."""
     # Grupo con 2 miembros, min_presentes=1 → cupo_normal=1, cupo_max=2
     g = Grupo(nombre="G_Enero", min_presentes=1)
     emp1 = Empleado(nombre="Juan PII", correo="juan@test.com", password_hash="h")
@@ -99,12 +99,13 @@ def test_disponibilidad_sin_pii(client: TestClient, db_session: Session) -> None
     assert day2["estado"] == "EXCEPCIONAL"
     assert day2["vista_general"] is True
 
-    # RN5: sin PII
+    # RN5 (PLAN_09): sin sesion los nombres NO se exponen
     str_response = response.text
     assert "Juan" not in str_response
     assert "Maria" not in str_response
     assert "PII" not in str_response
     assert "juan@test.com" not in str_response
+    assert all(d["empleados_ausentes"] == [] for d in data)
 
 
 def test_disponibilidad_por_grupo_con_sesion(client: TestClient, db_session: Session) -> None:
@@ -174,3 +175,80 @@ def test_disponibilidad_parametros_invalidos_422(client: TestClient, db_session:
     assert client.get("/disponibilidad?anio=2026&mes=0").status_code == 422
     assert client.get("/disponibilidad?anio=2019&mes=1").status_code == 422
     assert client.get("/disponibilidad?anio=2101&mes=1").status_code == 422
+
+
+def test_disponibilidad_nombres_con_sesion(client: TestClient, db_session: Session) -> None:
+    """SPEC-S18-A1: con sesion se exponen los nombres de los ausentes."""
+    from app.auth import create_session_token
+
+    g = Grupo(nombre="G_Nombres", min_presentes=1)
+    emp_ve = Empleado(
+        nombre="Observador", correo="obs_nom@test.com", password_hash="h", activo=True
+    )
+    emp_aus = Empleado(
+        nombre="Jorge Ausente", correo="jorge_nom@test.com", password_hash="h", activo=True
+    )
+    emp_ve.grupos.append(g)
+    emp_aus.grupos.append(g)
+    db_session.add_all([g, emp_ve, emp_aus])
+    db_session.commit()
+
+    db_session.add(Solicitud(
+        empleado_id=emp_aus.id,
+        tipo="permiso",
+        fecha_inicio=date(2026, 5, 4),
+        fecha_fin=date(2026, 5, 4),
+        dias_habiles=1,
+        estado="aprobada",
+        justificacion="Cita medica confidencial",
+    ))
+    db_session.commit()
+
+    token = create_session_token({"user_id": emp_ve.id})
+    response = client.get("/disponibilidad?anio=2026&mes=5", cookies={"session": token})
+    assert response.status_code == 200
+    data = response.json()
+
+    day4 = next(d for d in data if d["fecha"] == "2026-05-04")
+    assert day4["empleados_ausentes"] == ["Jorge Ausente"]
+
+    # Un dia sin ausencias no lista a nadie
+    day5 = next(d for d in data if d["fecha"] == "2026-05-05")
+    assert day5["empleados_ausentes"] == []
+
+
+def test_disponibilidad_nunca_expone_justificacion(
+    client: TestClient, db_session: Session
+) -> None:
+    """SPEC-S18-A1: la justificacion y el tipo siguen protegidos aun con sesion."""
+    from app.auth import create_session_token
+
+    g = Grupo(nombre="G_Justif", min_presentes=1)
+    emp_ve = Empleado(
+        nombre="MirON", correo="obs_jus@test.com", password_hash="h", activo=True
+    )
+    emp_aus = Empleado(
+        nombre="Ausente Jus", correo="aus_jus@test.com", password_hash="h", activo=True
+    )
+    emp_ve.grupos.append(g)
+    emp_aus.grupos.append(g)
+    db_session.add_all([g, emp_ve, emp_aus])
+    db_session.commit()
+
+    db_session.add(Solicitud(
+        empleado_id=emp_aus.id,
+        tipo="permiso",
+        fecha_inicio=date(2026, 5, 4),
+        fecha_fin=date(2026, 5, 4),
+        dias_habiles=1,
+        estado="aprobada",
+        justificacion="DIAGNOSTICO RESERVADO",
+    ))
+    db_session.commit()
+
+    token = create_session_token({"user_id": emp_ve.id})
+    response = client.get("/disponibilidad?anio=2026&mes=5", cookies={"session": token})
+
+    assert response.status_code == 200
+    assert "DIAGNOSTICO RESERVADO" not in response.text
+    assert "permiso" not in response.text

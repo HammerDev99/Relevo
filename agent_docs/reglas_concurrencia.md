@@ -78,3 +78,39 @@ El endpoint `GET /disponibilidad` proyecta el estado de cupos por día:
 - **Sin sesión**: evalúa todos los grupos → estado más restrictivo (vista general).
 
 El calendario es una **proyección de lectura**; el motor de reglas en `domain.py` es la fuente de verdad al momento de crear solicitudes.
+
+---
+
+## 6. Privacidad de la proyección (RN5)
+
+> Reformulada en **PLAN_09** (2026-09-04). Sustituye la redacción anterior
+> ("el dato sensible jamás se expone públicamente").
+
+El endpoint `GET /disponibilidad` **no exige autenticación**, por lo que la
+exposición de datos se gradúa según haya o no sesión válida:
+
+| Campo | Sin sesión | Con sesión |
+|-------|:----------:|:----------:|
+| `estado` (DISPONIBLE/OCUPADO/EXCEPCIONAL) | ✅ | ✅ |
+| `razon` (Festivo / Fin de semana) | ✅ | ✅ |
+| `grupos_ausentes` (nombres de grupo) | ✅ | ✅ |
+| `empleados_ausentes` (nombres de persona) | ❌ vacío | ✅ |
+| `tipo` (vacaciones / permiso) | ❌ nunca | ❌ nunca |
+| `justificacion` (motivo) | ❌ nunca | ❌ nunca |
+
+**Invariantes verificadas por tests** (`tests/v1/test_disponibilidad.py`):
+
+- `test_disponibilidad_sin_pii` — sin sesión, `empleados_ausentes` está vacío
+  y ningún nombre aparece en la respuesta.
+- `test_disponibilidad_nombres_con_sesion` — con sesión, los nombres se listan.
+- `test_disponibilidad_nunca_expone_justificacion` — ni el motivo ni el tipo
+  aparecen en la respuesta, ni siquiera con sesión.
+
+**Motivo de la acotación por sesión**: sin ese condicionante, los nombres
+quedarían accesibles a cualquier cliente que alcance la URL dentro de la red
+de la Rama Judicial. La justificación del permiso es el dato de mayor
+sensibilidad bajo la Ley 1581/2012 y queda fuera del cambio.
+
+**Nota de implementación**: el tooltip del calendario se inyecta con
+`unsafe_allow_html`; los nombres se escapan con `html.escape()` en
+`gui/pages/02_disponibilidad.py` antes de incorporarse al atributo `title`.

@@ -117,12 +117,21 @@ def consultar_disponibilidad(
 
         estado = _estado_para_grupos(grupos_evaluar, ausentes_dia)
 
-        # Grupos ausentes para tooltip (SPEC-S15-C5): sin PII
+        # Grupos ausentes para tooltip (SPEC-S15-C5)
         grupos_ausentes: list[str] = []
         for s in ausentes_dia:
             for g in s.empleado.grupos:
                 if g.nombre not in grupos_ausentes:
                     grupos_ausentes.append(g.nombre)
+
+        # Nombres de ausentes (SPEC-S18-A1, RN5 reformulada en PLAN_09).
+        # Solo para usuarios autenticados: el endpoint es accesible sin sesión.
+        # Nunca se expone el tipo de ausencia ni la justificación.
+        empleados_ausentes: list[str] = []
+        if empleado:
+            for s in ausentes_dia:
+                if s.empleado.nombre not in empleados_ausentes:
+                    empleados_ausentes.append(s.empleado.nombre)
 
         resultado.append(DisponibilidadRead(
             fecha=actual,
@@ -130,6 +139,7 @@ def consultar_disponibilidad(
             razon=razon,
             grupos_ausentes=grupos_ausentes,
             vista_general=vista_general,
+            empleados_ausentes=empleados_ausentes,
         ))
 
     return resultado

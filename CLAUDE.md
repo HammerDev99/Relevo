@@ -7,7 +7,7 @@ MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurren
 1. **Inmutabilidad**: modelos de dominio y DTOs preferiblemente inmutables. Modelos de persistencia (SQLAlchemy 2.0) con tipado estricto `Mapped`.
 2. **Errores**: usar `Result[T, E]` (`Success`/`Failure`), no `try/except` anidados ni excepciones para flujo de control en lógica de negocio.
 3. **Logging**: `get_logger(__name__)`, nunca `logging.getLogger` directo.
-4. **Privacidad (RN5)**: el dato sensible (nombre, motivo) jamás se expone públicamente. La capa pública (`/disponibilidad`) solo ve estados derivados (`DISPONIBLE`/`OCUPADO`/`EXCEPCIONAL`).
+4. **Privacidad (RN5)**: el **motivo/justificación y el tipo** de ausencia jamás se exponen a terceros. Los **nombres** de ausentes son visibles solo para usuarios **autenticados** (PLAN_09, 2026-09-04). La capa **sin sesión** de `/disponibilidad` solo ve estados derivados (`DISPONIBLE`/`OCUPADO`/`EXCEPCIONAL`) y nombres de grupo.
 5. **Arquitectura**: Separación clara entre `src/relevo` (festivos), `src/app/models` (persistencia), `src/app/domain` (reglas de negocio) y `src/app/routes` (FastAPI).
 6. **Verificación**: todo cambio pasa `pytest -x` + `ruff check`. Tests cubren Success y Failure.
 
@@ -18,7 +18,7 @@ MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurren
 | RN2 | 22 días vacaciones/año, 3 días permiso/mes por empleado |
 | RN3 | Concurrencia **por grupo**: máx `cupo_normal = miembros_activos − min_presentes` ausentes simultáneos en el grupo |
 | RN4 | Excepción **por grupo**: hasta `cupo_normal + 1` ausentes; solo permiso con justificación (no vacaciones como excepción) |
-| RN5 | Privacidad: empleados no ven quién/por qué |
+| RN5 | Privacidad: el motivo y el tipo nunca se exponen. Los nombres de ausentes solo se muestran a usuarios autenticados (reformulada en PLAN_09) |
 | RN6 | Respaldo: acordar cobertura con un compañero antes de pedir permiso |
 | RN7 | Festivos de Colombia (Ley Emiliani) + días hábiles reales |
 
@@ -48,11 +48,11 @@ docker-compose -f docker-compose.dev.yml up --build
 $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 ```
 
-## Métricas actuales (post-AUDIT_10, 2026-06-02)
+## Métricas actuales (post-SPRINT_18, 2026-09-04)
 
 | Métrica | Valor |
 |---------|-------|
-| Tests | **60** (pytest -x ✅) |
+| Tests | **68** (pytest -x ✅) |
 | Linting | ruff clean ✅ |
 | Última auditoría | AUDIT_10 — APROBADO (90.9% SDD) |
 | Auditorías totales | 10 (todas APROBADAS) |
@@ -66,6 +66,7 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 - **Milestone v5 ✅**: Mejoras de calendario (inicio domingo, tooltips, interactividad), UX móvil avanzada y seguridad (cambio de contraseña).
 - **Milestone v6 ✅**: Despliegue VPS productivo (EasyPanel + migración BD), tooltip de grupos configurable, calendario interactivo con pre-carga de fecha.
 - **Milestone v7 ✅**: Alineación modelo de concurrencia por grupo (calendario Opción A, RN4 composición), documentación sincronizada, operación VPS (logrotate + backup).
+- **Milestone v8 ✅**: Alta de empleados desde el panel de Coordinación (cierra el CRUD de personal) y visibilidad de nombres de ausentes en el calendario para usuarios autenticados (RN5 reformulada en PLAN_09).
 
 ### Historial de Sprints
 
@@ -88,3 +89,4 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 | SPRINT_15 | Compatibilidad VPS (nombres de servicios) | ✅ Done |
 | SPRINT_16 | Despliegue productivo VPS + calendario interactivo (C5+C6) | ✅ Done |
 | SPRINT_17 | Alineación concurrencia por grupo, RN4, documentación (PLAN_08) | ✅ Done |
+| SPRINT_18 | Alta de usuarios en GUI + nombres en calendario (PLAN_09) | ✅ Done |

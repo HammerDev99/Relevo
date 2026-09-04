@@ -1,4 +1,5 @@
 import calendar
+import html
 from datetime import date
 
 import streamlit as st
@@ -222,11 +223,17 @@ def show() -> None:
         fecha_str = date(anio, mes_index, dia).isoformat()
         dato = mapa_datos.get(
             fecha_str,
-            {"estado": "DISPONIBLE", "razon": None, "grupos_ausentes": []},
+            {
+                "estado": "DISPONIBLE",
+                "razon": None,
+                "grupos_ausentes": [],
+                "empleados_ausentes": [],
+            },
         )
         estado = dato["estado"]
         razon = dato.get("razon")
         grupos = dato.get("grupos_ausentes", [])
+        ausentes = dato.get("empleados_ausentes", [])
 
         # SPEC-S15-C4: festivos / fines de semana en gris
         if razon in ["Festivo", "Fin de semana"]:
@@ -238,14 +245,20 @@ def show() -> None:
         else:
             bg, fg = "#dc3545", "white"
 
-        # SPEC-S15-C5: tooltip
+        # SPEC-S15-C5: tooltip de grupos | SPEC-S18-A2: nombres de ausentes
         titulo = ""
-        if mostrar_tooltip and grupos and razon not in ["Festivo", "Fin de semana"]:
-            titulo = f"Grupos con ausencias: {', '.join(grupos)}"
-        elif razon:
+        if razon in ["Festivo", "Fin de semana"]:
             titulo = razon
+        else:
+            partes = []
+            if ausentes:
+                partes.append(f"Ausentes: {', '.join(ausentes)}")
+            if mostrar_tooltip and grupos:
+                partes.append(f"Grupos con ausencias: {', '.join(grupos)}")
+            titulo = " | ".join(partes) or (razon or "")
 
-        tooltip = f' title="{titulo}"' if titulo else ""
+        # El tooltip se inyecta con unsafe_allow_html: escapar el contenido
+        tooltip = f' title="{html.escape(titulo, quote=True)}"' if titulo else ""
         celdas_html += (
             f'<div class="cal-cell" style="background:{bg};color:{fg};"'
             f"{tooltip}>{dia}</div>"
