@@ -38,8 +38,9 @@ def seed() -> None:
             print(f"Creando grupo: {nombre}")
             g = Grupo(nombre=nombre, min_presentes=min_p)
             db.add(g)
-        else:
-            g.min_presentes = min_p # Asegurar parámetros
+        # SPEC-S18-C1: si el grupo ya existe se respeta su min_presentes.
+        # El seed corre en cada arranque del contenedor; sobrescribirlo
+        # revertiría los cupos (RN3) ajustados desde el panel.
         grupos_db[nombre] = g
 
     # 3. Lista de empleados reales (TODOS con rol 'empleado')
@@ -74,9 +75,10 @@ def seed() -> None:
                 rol="empleado"
             )
             db.add(user)
-        
-        # Asignar grupos
-        user.grupos = [grupos_db[gn] for gn in grp_nombres]
+            # SPEC-S18-C1: los grupos solo se asignan al crear el empleado.
+            # Reasignarlos en cada arranque revertía los cambios hechos
+            # desde Coordinación > Personal de la Oficina.
+            user.grupos = [grupos_db[gn] for gn in grp_nombres]
     
     # 4. Configuración global (singleton id=1)
     config = db.get(ConfiguracionApp, 1)

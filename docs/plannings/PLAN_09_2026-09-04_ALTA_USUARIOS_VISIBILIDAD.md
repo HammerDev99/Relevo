@@ -154,6 +154,24 @@ La restricción está implementada en tres capas:
 - **Prioridad**: P1
 - **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `7ecb7f9`
 
+### Fase C — Idempotencia del Seed (P0, hallazgo de despliegue)
+
+#### SPEC-S18-C1: El seed no debe sobrescribir ajustes de Coordinación
+- **Origen**: Verificación previa al despliegue del milestone v8 (2026-09-04), confirmada empíricamente contra el código en producción del VPS.
+- **Descripción**: `docker-entrypoint.sh` ejecuta `python -m app.seed` en **cada arranque** del servicio `relevo-api`. Dos asignaciones del seed se ejecutaban sobre registros ya existentes, revirtiendo cambios hechos desde el panel de Coordinación:
+    1. `seed.py` — `user.grupos = [...]` estaba **fuera** del `if not user`, reasignando los grupos de los 11 empleados del `empleados_mapping` en cada reinicio.
+    2. `seed.py` — `g.min_presentes = min_p` en la rama `else`, restaurando los cupos de G1–G4 (afecta RN3).
+- **Impacto**: pérdida silenciosa de configuración en cada reinicio del contenedor. No afectaba solicitudes, contraseñas ni usuarios creados fuera del mapping.
+- **Archivos**: `src/app/seed.py`, `tests/v1/test_seed.py` (nuevo)
+- **Criterios de Aceptación**:
+    - [x] La asignación de grupos ocurre solo al crear el empleado (dentro del `if not user`), replicando el patrón ya correcto del bloque de coordinadores.
+    - [x] `min_presentes` de un grupo existente se respeta; solo se fija al crearlo.
+    - [x] El seed sigue poblando correctamente la nómina en una BD vacía (multi-grupo de HECTOR, BRIGITH sin grupo, 14 registros).
+    - [x] Un usuario creado desde la GUI sobrevive intacto a los reinicios.
+    - [x] 4 tests nuevos cubren primera ejecución y reinicio.
+- **Prioridad**: P0
+- **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `(ver git log)`
+
 ---
 
 ## 3. Decisión de Diseño: reformulación de RN5
@@ -209,7 +227,7 @@ La restricción está implementada en tres capas:
 
 ## 6. Criterio de Cierre del Milestone
 
-- [x] Los 9 SPECs marcados `[x]` con commit asociado.
+- [x] Los 10 SPECs marcados `[x]` con commit asociado.
 - [x] `pytest -x` verde; sin regresión sobre los 60 tests previos.
 - [x] `ruff check src tests scripts` limpio.
 - [ ] Alta de un empleado verificada de extremo a extremo desde la GUI.

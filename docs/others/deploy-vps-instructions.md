@@ -1,5 +1,13 @@
 # Instrucciones de Despliegue VPS — Relevo
 > Documento para Claude (agente en VPS). Ejecutar en orden estricto.
+>
+> **Ruta de BD corregida el 2026-09-04**: la ruta activa es
+> `.../relevo-api/volumes/relevo-db-data/relevo.db`, verificada con
+> `docker inspect` contra el contenedor en ejecucion. El directorio
+> `.../volumes/database/` existe pero esta vacio (remanente de una
+> configuracion anterior). Ante cualquier duda, la fuente de verdad es:
+> `docker inspect $(docker ps -q -f "name=relevo-api") --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{"
+"}}{{end}}'`
 
 ## Contexto del sistema
 
@@ -24,7 +32,7 @@ ssh sprintadmin@31.97.146.7
 
 ```bash
 # Directorios para volúmenes bind mount
-sudo mkdir -p /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database
+sudo mkdir -p /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data
 sudo mkdir -p /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/logs
 
 # Permisos para UID 1000 (usuario relevo dentro del contenedor)
@@ -59,20 +67,20 @@ La BD de producción (`relevo.db`) viene desde la máquina del desarrollador.
 ```powershell
 # Copiar BD de producción al VPS
 scp C:\Desarrollo\RamaJudicial\Relevo\data\database\relevo.db `
-    sprintadmin@31.97.146.7:/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database/relevo.db
+    sprintadmin@31.97.146.7:/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db
 ```
 
 ### 2.2 En el VPS, verificar y corregir permisos:
 
 ```bash
 # Verificar que llegó y tiene tamaño razonable
-ls -lh /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database/relevo.db
+ls -lh /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db
 
 # Corregir ownership
-sudo chown 1000:1000 /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database/relevo.db
+sudo chown 1000:1000 /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db
 
 # Verificar tablas (requiere sqlite3)
-sqlite3 /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database/relevo.db \
+sqlite3 /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db \
     "SELECT name FROM sqlite_master WHERE type='table';"
 # Debe listar: empleados, grupos, empleado_grupo, solicitudes
 ```
@@ -103,7 +111,7 @@ TZ=America/Bogota
 **Volumes (Bind Mounts):**
 | Host Path | Container Path |
 |-----------|---------------|
-| `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database` | `/app/data/database` |
+| `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data` | `/app/data/database` |
 | `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/logs` | `/app/logs` |
 
 **Network:**
@@ -150,7 +158,7 @@ TZ=America/Bogota
 **Volumes (Bind Mounts — MISMOS PATHS que relevo-api):**
 | Host Path | Container Path |
 |-----------|---------------|
-| `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database` | `/app/data/database` |
+| `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data` | `/app/data/database` |
 | `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/logs` | `/app/logs` |
 
 > ⚠️ Los paths del host son LOS MISMOS que en relevo-api. Así comparten la BD.
@@ -189,7 +197,7 @@ curl -I https://relevo.sprintjudicial.com
 # Esperado: HTTP/2 200
 
 # 5. Datos de producción intactos
-sqlite3 /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database/relevo.db \
+sqlite3 /etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db \
     "SELECT nombre, rol FROM empleados;"
 ```
 
@@ -206,7 +214,7 @@ set -euo pipefail
 
 BACKUP_DIR="/home/sprintadmin/backups/relevo"
 TIMESTAMP=$(date "+%Y%m%d_%H%M%S")
-DB_PATH="/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/database/relevo.db"
+DB_PATH="/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db"
 BACKUP_FILE="${BACKUP_DIR}/relevo_${TIMESTAMP}.db.gz"
 RETENTION_DAYS=30
 
