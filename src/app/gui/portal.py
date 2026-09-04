@@ -3,6 +3,7 @@ import streamlit as st
 
 from app.gui import session_keys
 from app.gui.services.auth_service import AuthService
+from app.roles import ROL_COORDINACION, ROL_EMPLEADO
 
 # Configuración de página (Professional Style + Mobile Optimized)
 st.set_page_config(
@@ -100,14 +101,14 @@ def main() -> None:
 
     else:
         # Con sesión: navegación completa
-        user_role = st.session_state.get(session_keys.USER_ROLE, "empleado")
+        user_role = st.session_state.get(session_keys.USER_ROLE, ROL_EMPLEADO)
 
         pg_solicitudes = st.Page("pages/01_solicitudes.py", title="Mis Solicitudes", icon="📑")
         pg_perfil = st.Page("pages/04_perfil.py", title="Mi Perfil", icon="👤")
         pg_coordinacion = st.Page("pages/03_coordinacion.py", title="Panel Control", icon="🛡️")
 
         pages = [pg_disponibilidad, pg_solicitudes, pg_perfil]
-        if user_role == "coordinacion":
+        if user_role == ROL_COORDINACION:
             pages.append(pg_coordinacion)
 
         pg = st.navigation(pages)

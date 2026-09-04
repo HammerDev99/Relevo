@@ -39,22 +39,22 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 - **Riesgo actual**: bajo — solo explotable por una cuenta de coordinación ya autenticada. Pero un error de tipeo desde la GUI dejaría al usuario sin rol válido y sin acceso.
 - **Archivos**: `src/app/schemas/usuarios.py`
 - **Criterios de Aceptación**:
-    - [ ] `UsuarioUpdate.rol` pasa a `Literal["empleado","coordinacion"] | None`.
-    - [ ] Extraer el tipo a un alias compartido (`RolUsuario`) usado por `UsuarioCreate` y `UsuarioUpdate` — *Replace Magic Number with Symbolic Constant* aplicado a strings de rol.
-    - [ ] Test Failure: `PATCH` con rol inválido → 422.
-    - [ ] Test Success: `PATCH` con rol válido sigue funcionando (sin regresión).
+    - [x] `UsuarioUpdate.rol` pasa a `Literal["empleado","coordinacion"] | None`.
+    - [x] Extraer el tipo a un alias compartido (`RolUsuario`) usado por `UsuarioCreate` y `UsuarioUpdate` — *Replace Magic Number with Symbolic Constant* aplicado a strings de rol.
+    - [x] Test Failure: `PATCH` con rol inválido → 422.
+    - [x] Test Success: `PATCH` con rol válido sigue funcionando (sin regresión).
 - **Prioridad**: P1
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
 
 #### SPEC-S19-A2: Unificar el rol en una constante de dominio
 - **Descripción**: el literal `"coordinacion"` aparece disperso (`auth.py::get_coordinador`, `seed.py`, schemas, GUI). Un cambio de nomenclatura exigiría *Shotgun Surgery*.
-- **Archivos**: `src/app/models.py` o nuevo `src/app/roles.py`, más los consumidores
+- **Archivos**: `src/app/roles.py` (nuevo), `auth.py`, `models.py`, `seed.py`, `schemas/usuarios.py`, `gui/portal.py`, `gui/pages/03_coordinacion.py`, `gui/services/auth_service.py`
 - **Criterios de Aceptación**:
-    - [ ] Constantes `ROL_EMPLEADO` / `ROL_COORDINACION` en un único módulo.
-    - [ ] `auth.py`, `seed.py` y schemas las consumen; sin literales sueltos en lógica de autorización.
-    - [ ] Sin cambio de comportamiento: los tests existentes pasan sin modificarse.
+    - [x] Constantes `ROL_EMPLEADO` / `ROL_COORDINACION` en un único módulo.
+    - [x] `auth.py`, `seed.py` y schemas las consumen; sin literales sueltos en lógica de autorización.
+    - [x] Sin cambio de comportamiento: los tests existentes pasan sin modificarse.
 - **Prioridad**: P2
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
 
 ### Fase B — Eliminación de duplicación (P2)
 

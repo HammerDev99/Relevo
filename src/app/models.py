@@ -5,6 +5,7 @@ from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Str
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
+from .roles import ROL_EMPLEADO
 
 # Association table for many-to-many relationship
 empleado_grupo = Table(
@@ -35,7 +36,7 @@ class Empleado(Base):
     nombre: Mapped[str] = mapped_column(String(100))
     correo: Mapped[str] = mapped_column(String(200), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(200))
-    rol: Mapped[str] = mapped_column(String(20), default="empleado")
+    rol: Mapped[str] = mapped_column(String(20), default=ROL_EMPLEADO)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 

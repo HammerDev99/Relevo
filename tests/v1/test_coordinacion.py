@@ -234,3 +234,44 @@ def test_crear_usuario_rol_invalido(
 
     assert res.status_code == 422
     assert db_session.query(Empleado).filter_by(correo="malrol@test.com").first() is None
+
+
+# --- SPEC-S19-A1: whitelist de rol en UsuarioUpdate ---
+
+def test_actualizar_usuario_rol_invalido(
+    admin_client: tuple[TestClient, Empleado], db_session: Session
+) -> None:
+    """SPEC-S19-A1 (Failure): un rol fuera de la whitelist debe rechazarse."""
+    client, _ = admin_client
+    emp = Empleado(
+        nombre="Victima", correo="victima@test.com", password_hash="h", rol="empleado"
+    )
+    db_session.add(emp)
+    db_session.commit()
+    emp_id = emp.id
+
+    res = client.patch(f"/coordinacion/usuarios/{emp_id}", json={"rol": "superadmin"})
+
+    assert res.status_code == 422
+    db_session.expire_all()
+    # El rol original se conserva: nada se persistio
+    assert db_session.get(Empleado, emp_id).rol == "empleado"
+
+
+def test_actualizar_usuario_rol_valido_sin_regresion(
+    admin_client: tuple[TestClient, Empleado], db_session: Session
+) -> None:
+    """SPEC-S19-A1 (Success): un rol de la whitelist sigue funcionando."""
+    client, _ = admin_client
+    emp = Empleado(
+        nombre="Promovido", correo="promo@test.com", password_hash="h", rol="empleado"
+    )
+    db_session.add(emp)
+    db_session.commit()
+    emp_id = emp.id
+
+    res = client.patch(f"/coordinacion/usuarios/{emp_id}", json={"rol": "coordinacion"})
+
+    assert res.status_code == 200
+    db_session.expire_all()
+    assert db_session.get(Empleado, emp_id).rol == "coordinacion"

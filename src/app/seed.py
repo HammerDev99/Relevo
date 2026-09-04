@@ -3,6 +3,7 @@ import os
 from app.auth import get_password_hash
 from app.database import SessionLocal, init_db
 from app.models import ConfiguracionApp, Empleado, Grupo
+from app.roles import ROL_COORDINACION, ROL_EMPLEADO
 
 # AUDIT-H7: la contraseña inicial de las cuentas de coordinación no debe estar
 # en el código. Se toma de RELEVO_SEED_PASSWORD; el fallback solo aplica en
@@ -29,7 +30,7 @@ def seed() -> None:
                 nombre=nombre,
                 correo=correo,
                 password_hash=get_password_hash(password),
-                rol="coordinacion",
+                rol=ROL_COORDINACION,
             ))
 
     # 2. Definición de Grupos (PLAN_05)
@@ -81,7 +82,7 @@ def seed() -> None:
                 nombre=nombre,
                 correo=correo,
                 password_hash=get_password_hash(password),
-                rol="empleado"
+                rol=ROL_EMPLEADO
             )
             db.add(user)
             # SPEC-S18-C1: los grupos solo se asignan al crear el empleado.

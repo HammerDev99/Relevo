@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .database import get_db
 from .models import Empleado
+from .roles import ROL_COORDINACION
 
 serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
 
@@ -63,7 +64,7 @@ def get_empleado_actual(request: Request, db: Session = Depends(get_db)) -> Empl
 
 def get_coordinador(empleado: Empleado = Depends(get_empleado_actual)) -> Empleado:
     """Dependencia para asegurar que el empleado tiene rol de coordinación."""
-    if empleado.rol != "coordinacion":
+    if empleado.rol != ROL_COORDINACION:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos de coordinación",

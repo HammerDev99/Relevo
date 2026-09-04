@@ -2,6 +2,10 @@ import streamlit as st
 
 from app.gui.services.coordinacion_service import CoordinacionService
 from app.gui.utils.auth_guard import require_auth
+from app.roles import ROL_COORDINACION, ROL_EMPLEADO
+
+# SPEC-S19-A2: orden alineado con el índice del selectbox de edición
+ROLES_DISPONIBLES = [ROL_EMPLEADO, ROL_COORDINACION]
 
 
 def show() -> None:
@@ -103,7 +107,7 @@ def show() -> None:
                 "Contraseña inicial", type="password",
                 help="Mínimo 8 caracteres. El empleado podrá cambiarla en Mi Perfil."
             )
-            n_rol = st.selectbox("Rol", ["empleado", "coordinacion"])
+            n_rol = st.selectbox("Rol", ROLES_DISPONIBLES)
             n_grupos = st.multiselect(
                 "Grupos de Trabajo", options=list(opciones_grupos.keys())
             )
@@ -126,8 +130,10 @@ def show() -> None:
 
         for u in usuarios:
             with st.expander(f"👤 {u['nombre']} ({u['rol']})"), st.form(f"form_user_{u['id']}"):
-                new_rol = st.selectbox("Rol", ["empleado", "coordinacion"], 
-                                     index=0 if u["rol"]=="empleado" else 1)
+                new_rol = st.selectbox(
+                    "Rol", ROLES_DISPONIBLES,
+                    index=0 if u["rol"] == ROL_EMPLEADO else 1
+                )
                 new_activo = st.toggle("Activo", value=u["activo"])
                 
                 # Selección de grupos (M:N)

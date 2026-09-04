@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from app.roles import ROL_EMPLEADO, RolUsuario
 
 # Longitud mínima de la contraseña inicial asignada por Coordinación (SPEC-S18-B1)
 LONGITUD_MINIMA_PASSWORD = 8
@@ -28,7 +29,7 @@ class UsuarioCreate(BaseModel):
     nombre: str = Field(min_length=1, max_length=100)
     correo: EmailStr
     password: str = Field(min_length=LONGITUD_MINIMA_PASSWORD, max_length=128)
-    rol: Literal["empleado", "coordinacion"] = "empleado"
+    rol: RolUsuario = ROL_EMPLEADO
     grupo_ids: list[int] = []
 
     model_config = ConfigDict(frozen=True)
@@ -42,7 +43,9 @@ class UsuarioLogin(BaseModel):
 
 
 class UsuarioUpdate(BaseModel):
-    rol: str | None = None
+    # SPEC-S19-A1: misma whitelist que UsuarioCreate — antes era `str` y
+    # aceptaba roles arbitrarios que rompian get_coordinador.
+    rol: RolUsuario | None = None
     activo: bool | None = None
     grupo_ids: list[int] | None = None
 

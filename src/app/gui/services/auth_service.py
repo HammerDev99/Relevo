@@ -5,6 +5,7 @@ import streamlit as st
 
 from app.gui import session_keys
 from app.gui.utils.logger import log_gui_action
+from app.roles import ROL_EMPLEADO
 
 
 class AuthService:
@@ -29,7 +30,7 @@ class AuthService:
                     data = cast(dict[str, Any], response.json())
                     st.session_state[session_keys.IS_AUTHENTICATED] = True
                     st.session_state[session_keys.USER_EMAIL] = email
-                    st.session_state[session_keys.USER_ROLE] = data.get("rol", "empleado")
+                    st.session_state[session_keys.USER_ROLE] = data.get("rol", ROL_EMPLEADO)
                     st.session_state[session_keys.AUTH_TOKEN] = response.cookies.get("session")
                     return True
                 else:
@@ -78,7 +79,7 @@ class AuthService:
 
     @property
     def user_role(self) -> str:
-        return cast(str, st.session_state.get(session_keys.USER_ROLE, "empleado"))
+        return cast(str, st.session_state.get(session_keys.USER_ROLE, ROL_EMPLEADO))
 
     def get_auth_headers(self) -> dict[str, str]:
         """Retorna los headers/cookies necesarios para peticiones autenticadas."""
