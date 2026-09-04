@@ -68,8 +68,8 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 - **Milestone v5 ✅**: Mejoras de calendario (inicio domingo, tooltips, interactividad), UX móvil avanzada y seguridad (cambio de contraseña).
 - **Milestone v6 ✅**: Despliegue VPS productivo (EasyPanel + migración BD), tooltip de grupos configurable, calendario interactivo con pre-carga de fecha.
 - **Milestone v7 ✅**: Alineación modelo de concurrencia por grupo (calendario Opción A, RN4 composición), documentación sincronizada, operación VPS (logrotate + backup).
-- **Milestone v9 ✅**: Deuda técnica de AUDIT_11 — módulo `roles.py`, `BaseAPIService` para los servicios GUI, `get_empleado_opcional()`, y medición de cobertura habilitada (88%).
 - **Milestone v8 ✅**: Alta de empleados desde el panel de Coordinación (cierra el CRUD de personal) y visibilidad de nombres de ausentes en el calendario para usuarios autenticados (RN5 reformulada en PLAN_09).
+- **Milestone v9 ✅**: Deuda técnica de AUDIT_11 — módulo `roles.py`, `BaseAPIService` para los servicios GUI, `get_empleado_opcional()`, y medición de cobertura habilitada (88%).
 
 ### Historial de Sprints
 
