@@ -111,13 +111,15 @@
 
 | ID | Hallazgo | Prioridad | Destino |
 |----|----------|:---------:|---------|
-| H8 | `UsuarioUpdate.rol` sin whitelist `Literal` | P2 | PLAN_10 |
-| H9 | Extract Method `_resolver_grupos()` en `coordinacion.py` | P2 | PLAN_10 (al alcanzar 3ª ocurrencia) |
-| H13 | `02_disponibilidad.py` 301 líneas — Extract Method del grid | P2 | PLAN_10 |
-| H14 | Duplicate Code estructural en los 4 servicios GUI — Extract Superclass | P2 | PLAN_10 |
-| H20 | `get_empleado_opcional()` en `auth.py` (heredado de AUDIT_10 H16) | P2 | PLAN_10 |
+| H8 | `UsuarioUpdate.rol` sin whitelist `Literal` | P1 | **PLAN_10 SPEC-S19-A1** |
+| H9 | Extract Method `_resolver_grupos()` en `coordinacion.py` | P2 | **PLAN_10 SPEC-S19-B1** |
+| H13 | `02_disponibilidad.py` — Extract Method del grid | — | ✅ **resuelto en SPEC-S18-E2** |
+| H14 | Duplicate Code estructural en los 4 servicios GUI (19 ocurrencias) — Extract Superclass | P2 | **PLAN_10 SPEC-S19-B2** |
+| H20 | `get_empleado_opcional()` en `auth.py` (heredado de AUDIT_10 H16 — 2 auditorías diferido) | P2 | **PLAN_10 SPEC-S19-B3** |
 | H21 | `DisponibilidadRead` con dos audiencias | P3 | Vigilar |
-| — | Mypy `02_disponibilidad.py:202` `dict` sin type args (pre-existente) | P2 | PLAN_10 |
+| — | Mypy `dict` sin type args (pre-existente) | — | ✅ **resuelto en la fase Act** |
+| — | `pytest-cov` no instalado: la regla del 80% no es medible | **P1** | **PLAN_10 SPEC-S19-C1** |
+| — | Discrepancia BRIGITH (seed sin grupo vs. credenciales en G3) | P1 | **PLAN_10 SPEC-S19-C2** |
 | — | Rotación de contraseñas de coordinación en producción | **P0** | Operativo, en curso |
 
 ---
