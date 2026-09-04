@@ -52,10 +52,10 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 
 | Métrica | Valor |
 |---------|-------|
-| Tests | **75** (pytest -x ✅) |
-| Linting | ruff clean ✅ |
-| Última auditoría | AUDIT_10 — APROBADO (90.9% SDD) |
-| Auditorías totales | 10 (todas APROBADAS) |
+| Tests | **76** (pytest -x ✅) |
+| Linting | ruff clean ✅ · mypy clean ✅ |
+| Última auditoría | AUDIT_11 — APROBADO (84.2% SDD neto) |
+| Auditorías totales | 11 (todas APROBADAS) |
 
 ## Estado actual
 
