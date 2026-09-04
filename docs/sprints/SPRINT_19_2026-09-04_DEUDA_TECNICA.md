@@ -83,8 +83,8 @@ Doble consecuencia:
 
 - [x] **SPEC-S19-C2** resuelto: el usuario decidió retirar del seed a LUISA, JOHN y BRIGITH (2026-09-04).
 - [ ] Desplegar al VPS (push dispara ambos webhooks).
-- [ ] **AUDIT_12** — fase Check del milestone v9. Meta: tasa SDD neta ≥ 85%.
-- [ ] Backlog nuevo: `routes/coordinacion.py` al 46% de cobertura — los endpoints de solicitudes y grupos carecen de tests.
+- [x] **AUDIT_12** — ✅ APROBADO (90.0% SDD, 2 defectos corregidos en fase Act). Ver `docs/validate/AUDIT_12_2026-09-04_GATE_V9_DEUDA_TECNICA.md`.
+- [ ] Backlog → PLAN_11: `routes/coordinacion.py` al 57% de cobertura (subió desde 46% por los tests de A1); `session_keys.USER_ID` declarado pero nunca escrito.
 
 ---
 

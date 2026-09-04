@@ -192,4 +192,4 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 - [x] `pytest -x` verde: 78 tests, sin regresión.
 - [x] `ruff check` y `mypy src` limpios.
 - [x] Cobertura medida y registrada en `CLAUDE.md`: 88%.
-- [ ] AUDIT_12 con tasa SDD neta **≥ 85%**.
+- [x] AUDIT_12 con tasa SDD **90.0%** ✅ — APROBADO (2026-09-04).

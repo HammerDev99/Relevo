@@ -14,6 +14,11 @@ from typing import Any
 import httpx
 import streamlit as st
 
+from app.gui import session_keys
+from relevo.logger import get_logger
+
+logger = get_logger(__name__)
+
 BASE_URL_POR_DEFECTO = "http://relevo-api:8000"
 TIMEOUT_SEGUNDOS = 10.0
 
@@ -26,8 +31,6 @@ class BaseAPIService:
 
     def get_auth_headers(self) -> dict[str, str]:
         """Cabeceras con la cookie de sesión, si hay una activa."""
-        from app.gui import session_keys
-
         token = st.session_state.get(session_keys.AUTH_TOKEN)
         return {"Cookie": f"session={token}"} if token else {}
 
@@ -63,8 +66,11 @@ class BaseAPIService:
                     follow_redirects=follow_redirects,
                 )
         except Exception as e:
+            # AUDIT_12 H4: el detalle técnico (URL interna del API, tipo de
+            # excepción) va al log, no a la pantalla del usuario.
+            logger.warning("Fallo de transporte en %s %s: %s", metodo, ruta, e)
             if mostrar_error:
-                st.error(mensaje_error or f"Error de conexión con el servidor: {e}")
+                st.error(mensaje_error or "No se pudo conectar con el servidor.")
             return None
 
     def _get_json(

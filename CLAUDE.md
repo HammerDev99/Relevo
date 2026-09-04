@@ -56,8 +56,8 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 | Tests | **78** (pytest -x ✅) |
 | Linting | ruff clean ✅ · mypy clean ✅ |
 | Cobertura | **88%** (657 líneas verificables; GUI excluida) |
-| Última auditoría | AUDIT_11 — APROBADO (84.2% SDD neto) |
-| Auditorías totales | 11 (todas APROBADAS) |
+| Última auditoría | AUDIT_12 — APROBADO (90.0% SDD) |
+| Auditorías totales | 12 (todas APROBADAS) |
 
 ## Estado actual
 
