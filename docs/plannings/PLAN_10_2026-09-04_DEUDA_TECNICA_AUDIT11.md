@@ -116,12 +116,16 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 - **Origen**: detectada el 2026-09-04, diferida en PLAN_09 §5
 - **Descripción**: `seed.py:61` tiene a BRIGITH **sin grupo** (decisión 2026-06-02), pero `CREDENCIALES_PRUEBA.md:27` la lista en *G3: Reparto Const. y Penal*. Una de las dos fuentes miente.
 - **Impacto**: sin grupo, BRIGITH no consume cupo de RN3 y sus solicitudes se aprueban sin restricción de concurrencia. Si el dato correcto es G3, el motor la está tratando mal.
+- **Decisión del usuario (2026-09-04)**: retirar del seed a **LUISA, JOHN y BRIGITH**. Las tres cuentas existen en producción y se gestionan desde el panel; el seed queda como nómina base de una BD vacía.
 - **Criterios de Aceptación**:
-    - [ ] **Confirmar con el usuario** cuál es la composición real antes de tocar nada.
-    - [ ] Alinear `seed.py`, `CREDENCIALES_PRUEBA.md` y `agent_docs/reglas_concurrencia.md` §2.
-    - [ ] Verificar el estado en la BD de producción (el seed ya no reasigna grupos: SPEC-S18-C1).
+    - [x] Composición confirmada por el usuario antes de modificar nada.
+    - [x] `BRIGITH` eliminada de `empleados_mapping`; LUISA y JOHN ya estaban fuera.
+    - [x] `CREDENCIALES_PRUEBA.md` y `agent_docs/reglas_concurrencia.md` §2 alineados con el seed.
+    - [x] Tests del seed actualizados: 11 registros (1 coordinador + 10 empleados).
+    - [x] §2 de `reglas_concurrencia.md` advierte que describe el seed, no el estado real de producción.
+- **Nota operativa**: retirar del seed **no elimina** las cuentas de la BD del VPS. El seed solo crea si no existe; nunca borra. Las tres cuentas y sus solicitudes permanecen intactas. Lo que cambia es que, si se eliminaran desde el panel, el seed ya no las recrearía.
 - **Prioridad**: P1 — afecta la aplicación de RN3
-- **Estado**: `[ ]` — **bloqueado**: requiere decisión del usuario
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
 
 ### Fase D — Ajuste de alcance del listado táctil (P1)
 
@@ -183,9 +187,9 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 
 ## 6. Criterio de Cierre del Milestone
 
-- [ ] SPECs A1, A2, B1, B2, B3, C1 y D1 marcados `[x]` con commit asociado.
-- [ ] C2 resuelto o formalmente reasignado si la decisión sigue pendiente.
-- [ ] `pytest -x` verde, sin regresión sobre los 76 tests actuales.
-- [ ] `ruff check` y `mypy src` limpios.
-- [ ] Cobertura medida y registrada en `CLAUDE.md`.
+- [x] Los 8 SPECs marcados `[x]` con commit asociado.
+- [x] C2 resuelto con decisión del usuario (2026-09-04).
+- [x] `pytest -x` verde: 78 tests, sin regresión.
+- [x] `ruff check` y `mypy src` limpios.
+- [x] Cobertura medida y registrada en `CLAUDE.md`: 88%.
 - [ ] AUDIT_12 con tasa SDD neta **≥ 85%**.

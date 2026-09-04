@@ -22,6 +22,11 @@ cupo_max    = cupo_normal + 1                          # una excepción por grup
 
 ## 2. Composición de grupos (seed canónico — v3)
 
+> Esta tabla describe lo que el **seed** genera en una base de datos vacía. La
+> composición real de producción puede diferir: Coordinación reasigna grupos
+> desde el panel y, desde SPEC-S18-C1, el seed ya no revierte esos cambios.
+> Para el estado real, consultar la BD del VPS.
+
 | Grupo | Miembros | `min_presentes` | `cupo_normal` | `cupo_max` |
 |-------|----------|:---------------:|:-------------:|:----------:|
 | G1: Comunicaciones y Atención | FLOR, NELLY, HECTOR | 2 | 1 | 2 |
@@ -30,7 +35,10 @@ cupo_max    = cupo_normal + 1                          # una excepción por grup
 | G4: Notificaciones y Archivo | FABIAN, HECTOR | 1 | 1 | 2 |
 
 > **Multi-grupo**: HECTOR pertenece a G1 y G4. Su ausencia consume cupo en ambos grupos simultáneamente.
-> **Sin grupo**: BRIGITH. Puede solicitar (saldos + respaldo), sin restricción de concurrencia.
+> **Sin grupo**: un empleado sin grupos asignados puede solicitar (saldos +
+> respaldo) sin restricción de concurrencia. Desde SPEC-S19-C2 el seed no
+> genera ningún empleado en esa situación; el caso se conserva porque
+> Coordinación puede dejar a alguien sin grupo desde el panel.
 
 ---
 
@@ -63,7 +71,7 @@ Las composiciones permitidas por RN4 (vacaciones+permiso, o 2 permisos justifica
 - FLOR (G1) solicita estándar → Failure "CUPO_LLENO" (bloqueada por G1)
 - FABIAN (G4) solicita excepción permiso con justificación → ausentes_G4 = 1 < cupo_max(2) → **Success**
 
-### Caso 3: BRIGITH (sin grupo)
+### Caso 3: empleado sin grupo
 - Sin grupos asignados → el bucle de concurrencia se omite
 - Solo se validan: saldos RN2, respaldo RN6, duplicidad
 - Solicitud estándar → **Success** (si saldos disponibles y respaldo válido)

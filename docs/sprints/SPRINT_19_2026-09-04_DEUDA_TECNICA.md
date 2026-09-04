@@ -5,8 +5,8 @@
 | **Fecha** | 2026-09-04 |
 | **Fase CDAID** | Do |
 | **Milestone** | v9 |
-| **SPECs** | SPEC-S19-A1, A2, B1, B2, B3, C1, D1 (7 de 8) |
-| **Estado** | ✅ Done — C2 bloqueado por decisión pendiente |
+| **SPECs** | SPEC-S19-A1, A2, B1, B2, B3, C1, C2, D1 (8 de 8) |
+| **Estado** | ✅ Done |
 
 ---
 
@@ -29,6 +29,7 @@ Regla aplicada: todo refactor debe pasar los tests existentes **sin modificarlos
 | **D1** | El desplegable táctil solo se renderiza con sesión activa | `08a3a8a` |
 | **B3** | `get_empleado_opcional()` en `auth.py`; `_empleado_de_sesion()` eliminado | `3d004d6` |
 | **B2** | `BaseAPIService`; los 4 servicios GUI migrados uno a uno | `08e4cab` |
+| **C2** | LUISA, JOHN y BRIGITH retirados del seed; docs alineadas | (ver git log) |
 
 ### Hallazgos durante la ejecución
 
@@ -80,7 +81,7 @@ Doble consecuencia:
 
 ## 5. Pendiente al cierre
 
-- [ ] **SPEC-S19-C2 (BRIGITH)** — bloqueado: `seed.py` la tiene sin grupo y `CREDENCIALES_PRUEBA.md` en G3. Requiere que el usuario confirme la composición real, porque determina si consume cupo de RN3.
+- [x] **SPEC-S19-C2** resuelto: el usuario decidió retirar del seed a LUISA, JOHN y BRIGITH (2026-09-04).
 - [ ] Desplegar al VPS (push dispara ambos webhooks).
 - [ ] **AUDIT_12** — fase Check del milestone v9. Meta: tasa SDD neta ≥ 85%.
 - [ ] Backlog nuevo: `routes/coordinacion.py` al 46% de cobertura — los endpoints de solicitudes y grupos carecen de tests.
@@ -89,4 +90,4 @@ Doble consecuencia:
 
 ## 6. Listo para Check
 
-El milestone está listo para auditoría: gate de transición superado (78 tests, ruff y mypy limpios, cobertura 88%), 7 de 8 SPECs completados y el octavo formalmente bloqueado con su motivo documentado.
+El milestone está listo para auditoría: gate de transición superado (78 tests, ruff y mypy limpios, cobertura 88%), los 8 SPECs completados.

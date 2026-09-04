@@ -104,12 +104,11 @@ def test_seed_asigna_grupos_en_primera_ejecucion(db_session: Session) -> None:
         "G4: Notificaciones y Archivo",
     ]
 
-    brigith = db_session.query(Empleado).filter_by(correo="brigith@test.com").first()
-    assert brigith is not None
-    assert brigith.grupos == []
+    # SPEC-S19-C2: BRIGITH ya no forma parte del seed
+    assert db_session.query(Empleado).filter_by(correo="brigith@test.com").first() is None
 
-    # 1 coordinador activo en el seed (LUISA y JOHN ya existen en produccion) + 11
-    assert db_session.query(Empleado).count() == 12
+    # 1 coordinador + 10 empleados (LUISA, JOHN y BRIGITH viven solo en la BD)
+    assert db_session.query(Empleado).count() == 11
 
 
 def test_seed_no_duplica_ni_altera_usuarios_nuevos(db_session: Session) -> None:

@@ -16,10 +16,11 @@ def seed() -> None:
     db = SessionLocal()
 
     # 1. Coordinadores
-    # LUISA y JOHN se retiraron del seed el 2026-09-04: ya existen en
-    # producción con su contraseña rotada, y volver a listarlos solo los
-    # recrearía con la credencial por defecto si alguna vez se eliminaran.
-    # Las altas de coordinación se hacen desde el panel (SPEC-S18-B4).
+    # SPEC-S19-C2: LUISA, JOHN y BRIGITH se retiraron del seed el 2026-09-04.
+    # Ya existen en producción; volver a listarlos solo los recrearía con la
+    # credencial por defecto si alguna vez se eliminaran desde el panel.
+    # Las altas se hacen desde Coordinación > Personal de la Oficina
+    # (SPEC-S18-B4). El seed queda como nómina base de una BD vacía.
     coordinadores = [
         ("COORDINADOR GENERAL", "coordinador@test.com", _PASSWORD_COORDINACION),
     ]
@@ -59,7 +60,6 @@ def seed() -> None:
         "JORGE": ["G3: Reparto Const. y Penal"],
         "YESENIA": ["G3: Reparto Const. y Penal"],
         "FABIAN": ["G4: Notificaciones y Archivo"],
-        "BRIGITH": [],  # Sin grupo asignado (decisión 2026-06-02)
         "DANIELA": ["G3: Reparto Const. y Penal"],
         "JACKSON": ["G2: Fichas EJPMS"],
         "FLOR": ["G1: Comunicaciones y Atención"],
