@@ -91,3 +91,146 @@ def test_coordinacion_eliminar_usuario(
     assert db_session.get(Empleado, emp_id) is None
     # Verifica el borrado en cascada
     assert db_session.query(Solicitud).filter_by(empleado_id=emp_id).first() is None
+
+
+# --- SPEC-S18-B5: Alta de usuarios desde Coordinación ---
+
+def test_crear_usuario_exitoso(
+    admin_client: tuple[TestClient, Empleado], db_session: Session
+) -> None:
+    """SPEC-S18-B2: coordinación crea un empleado; el hash permite iniciar sesión."""
+    from app.auth import verify_password
+
+    client, _ = admin_client
+
+    res = client.post("/coordinacion/usuarios", json={
+        "nombre": "MARIANA",
+        "correo": "mariana@test.com",
+        "password": "Relevo2026*",
+        "rol": "empleado",
+        "grupo_ids": [],
+    })
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["nombre"] == "MARIANA"
+    assert body["rol"] == "empleado"
+    assert body["activo"] is True
+    # El hash nunca viaja en la respuesta
+    assert "password" not in body
+    assert "password_hash" not in body
+
+    creado = db_session.query(Empleado).filter_by(correo="mariana@test.com").first()
+    assert creado is not None
+    assert verify_password("Relevo2026*", creado.password_hash)
+    assert creado.password_hash != "Relevo2026*"
+
+
+def test_crear_usuario_con_grupos(
+    admin_client: tuple[TestClient, Empleado], db_session: Session
+) -> None:
+    """SPEC-S18-B2: los grupo_ids asignan la relación M:N."""
+    from app.models import Grupo
+
+    client, _ = admin_client
+    g = Grupo(nombre="G_Alta", min_presentes=1)
+    db_session.add(g)
+    db_session.commit()
+
+    res = client.post("/coordinacion/usuarios", json={
+        "nombre": "ROSA",
+        "correo": "rosa@test.com",
+        "password": "Relevo2026*",
+        "rol": "empleado",
+        "grupo_ids": [g.id],
+    })
+
+    assert res.status_code == 200
+    assert res.json()["grupo_ids"] == [g.id]
+
+    creado = db_session.query(Empleado).filter_by(correo="rosa@test.com").first()
+    assert creado is not None
+    assert [gr.nombre for gr in creado.grupos] == ["G_Alta"]
+
+
+def test_crear_usuario_correo_duplicado(
+    admin_client: tuple[TestClient, Empleado], db_session: Session
+) -> None:
+    """SPEC-S18-B2 (Failure): correo repetido → 400, no IntegrityError."""
+    client, _ = admin_client
+    db_session.add(Empleado(
+        nombre="EXISTENTE", correo="repetido@test.com", password_hash="h"
+    ))
+    db_session.commit()
+
+    res = client.post("/coordinacion/usuarios", json={
+        "nombre": "OTRO",
+        "correo": "repetido@test.com",
+        "password": "Relevo2026*",
+        "rol": "empleado",
+        "grupo_ids": [],
+    })
+
+    assert res.status_code == 400
+    assert "correo" in res.json()["detail"].lower()
+
+
+def test_crear_usuario_requiere_coordinacion(
+    client: TestClient, db_session: Session
+) -> None:
+    """SPEC-S18-B2 (Failure): un empleado sin rol coordinación recibe 403."""
+    db_session.add(Empleado(
+        nombre="Raso",
+        correo="raso@test.com",
+        password_hash=get_password_hash("raso1234"),
+        rol="empleado",
+    ))
+    db_session.commit()
+    client.post("/login", data={"correo": "raso@test.com", "password": "raso1234"})
+
+    res = client.post("/coordinacion/usuarios", json={
+        "nombre": "INTRUSO",
+        "correo": "intruso@test.com",
+        "password": "Relevo2026*",
+        "rol": "coordinacion",
+        "grupo_ids": [],
+    })
+
+    assert res.status_code == 403
+    assert db_session.query(Empleado).filter_by(correo="intruso@test.com").first() is None
+
+
+def test_crear_usuario_password_corta(
+    admin_client: tuple[TestClient, Empleado], db_session: Session
+) -> None:
+    """SPEC-S18-B1 (Failure): contraseña de menos de 8 caracteres → 422."""
+    client, _ = admin_client
+
+    res = client.post("/coordinacion/usuarios", json={
+        "nombre": "CORTA",
+        "correo": "corta@test.com",
+        "password": "abc",
+        "rol": "empleado",
+        "grupo_ids": [],
+    })
+
+    assert res.status_code == 422
+    assert db_session.query(Empleado).filter_by(correo="corta@test.com").first() is None
+
+
+def test_crear_usuario_rol_invalido(
+    admin_client: tuple[TestClient, Empleado], db_session: Session
+) -> None:
+    """SPEC-S18-B1 (Failure): rol fuera de la whitelist → 422."""
+    client, _ = admin_client
+
+    res = client.post("/coordinacion/usuarios", json={
+        "nombre": "MALROL",
+        "correo": "malrol@test.com",
+        "password": "Relevo2026*",
+        "rol": "superadmin",
+        "grupo_ids": [],
+    })
+
+    assert res.status_code == 422
+    assert db_session.query(Empleado).filter_by(correo="malrol@test.com").first() is None

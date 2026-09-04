@@ -72,6 +72,33 @@ class CoordinacionService:
             return []
 
     @log_gui_action("CoordinacionService")
+    def crear_usuario(self, data: dict[str, Any]) -> bool:
+        """Registra un nuevo empleado (SPEC-S18-B3)."""
+        try:
+            headers = self.auth.get_auth_headers()
+            with httpx.Client(base_url=self.base_url) as client:
+                response = client.post(
+                    "/coordinacion/usuarios",
+                    json=data,
+                    headers=headers
+                )
+                if response.status_code == 200:
+                    return True
+
+                if response.status_code == 422:
+                    st.error(
+                        "Datos inválidos. Verifica el correo "
+                        "y que la contraseña tenga al menos 8 caracteres."
+                    )
+                else:
+                    detalle = response.json().get("detail", "Error al crear el usuario")
+                    st.error(f"Error: {detalle}")
+                return False
+        except Exception as e:
+            st.error(f"Error de conexión: {str(e)}")
+            return False
+
+    @log_gui_action("CoordinacionService")
     def actualizar_usuario(self, usuario_id: int, data: dict[str, Any]) -> bool:
         try:
             headers = self.auth.get_auth_headers()

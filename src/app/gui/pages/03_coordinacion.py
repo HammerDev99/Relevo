@@ -94,7 +94,36 @@ def show() -> None:
         usuarios = service.listar_usuarios()
         grupos = service.listar_grupos()
         opciones_grupos = {g["nombre"]: g["id"] for g in grupos}
-        
+
+        # SPEC-S18-B4: alta de empleados desde la GUI
+        with st.expander("➕ Registrar Nuevo Empleado"), st.form("nuevo_usuario"):
+            n_nombre = st.text_input("Nombre completo")
+            n_correo = st.text_input("Correo")
+            n_password = st.text_input(
+                "Contraseña inicial", type="password",
+                help="Mínimo 8 caracteres. El empleado podrá cambiarla en Mi Perfil."
+            )
+            n_rol = st.selectbox("Rol", ["empleado", "coordinacion"])
+            n_grupos = st.multiselect(
+                "Grupos de Trabajo", options=list(opciones_grupos.keys())
+            )
+
+            if st.form_submit_button("Crear Empleado"):
+                nuevo = {
+                    "nombre": n_nombre.strip(),
+                    "correo": n_correo.strip(),
+                    "password": n_password,
+                    "rol": n_rol,
+                    "grupo_ids": [opciones_grupos[name] for name in n_grupos],
+                }
+                if not nuevo["nombre"] or not nuevo["correo"]:
+                    st.error("Nombre y correo son obligatorios.")
+                elif service.crear_usuario(nuevo):
+                    st.success(f"Empleado {nuevo['nombre']} creado exitosamente")
+                    st.rerun()
+
+        st.divider()
+
         for u in usuarios:
             with st.expander(f"👤 {u['nombre']} ({u['rol']})"), st.form(f"form_user_{u['id']}"):
                 new_rol = st.selectbox("Rol", ["empleado", "coordinacion"], 

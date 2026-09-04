@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.auth import get_coordinador
+from app.auth import get_coordinador, get_password_hash
 from app.database import get_db
 from app.models import Empleado, Grupo, Solicitud
 from app.schemas.grupos import GrupoCreate, GrupoRead, GrupoUpdate
 from app.schemas.solicitudes import SolicitudRead
-from app.schemas.usuarios import UsuarioRead, UsuarioUpdate
+from app.schemas.usuarios import UsuarioCreate, UsuarioRead, UsuarioUpdate
 
 router = APIRouter(prefix="/coordinacion", tags=["coordinacion"])
 
@@ -64,6 +64,36 @@ def admin_listar_usuarios(
 ) -> list[Empleado]:
     """Lista todos los usuarios para administración."""
     return list(db.scalars(select(Empleado)).all())
+
+@router.post("/usuarios", response_model=UsuarioRead)
+def crear_usuario(
+    data: UsuarioCreate,
+    db: Session = Depends(get_db),
+    admin: Empleado = Depends(get_coordinador)
+) -> Empleado:
+    """Registra un nuevo empleado (SPEC-S18-B2)."""
+    if db.scalar(select(Empleado).where(Empleado.correo == data.correo)):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ya existe un usuario con el correo {data.correo}"
+        )
+
+    user = Empleado(
+        nombre=data.nombre,
+        correo=data.correo,
+        password_hash=get_password_hash(data.password),
+        rol=data.rol,
+    )
+
+    if data.grupo_ids:
+        user.grupos = list(
+            db.scalars(select(Grupo).where(Grupo.id.in_(data.grupo_ids))).all()
+        )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
 @router.patch("/usuarios/{usuario_id}", response_model=UsuarioRead)
 def actualizar_usuario(
