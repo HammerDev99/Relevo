@@ -1,6 +1,6 @@
 # Infraestructura de Despliegue — Relevo
 
-## Estado actual (v7, 2026-06-02)
+## Estado actual (v8, 2026-09-04)
 
 **Producción activa** en VPS `31.97.146.7` (red Rama Judicial):
 - `relevo-api` → FastAPI en puerto 8000 (interno, sin dominio público)
@@ -33,6 +33,7 @@ Internet → Traefik (HTTPS) → relevo-gui (:8501)
 | `SECRET_KEY` | ✅ (igual) | ✅ (igual) |
 | `DATABASE_URL` | `sqlite:////app/data/database/relevo.db` | igual |
 | `APP_ENV` | `production` | — |
+| `RELEVO_SEED_PASSWORD` | ✅ (AUDIT-H7) | — |
 | `TZ` | `America/Bogota` | `America/Bogota` |
 
 ---
@@ -64,6 +65,27 @@ docker-compose -f docker-compose.dev.yml up --build
 - **Dev local**: `data/database/relevo.db` (en `.gitignore`).
 - **VPS**: bind-mount en `/etc/easypanel/projects/.../relevo-db-data/relevo.db`, owner `1000:1000`.
 - **Backup**: script `~/relevo-deploy/backup-relevo.sh` en crontab (2 AM diario). Ver Fase 7 en `docs/others/deploy-vps-instructions.md`.
+
+---
+
+## 4.1 Mecanismo de despliegue (v8)
+
+Ambos servicios se construyen desde el **Dockerfile del repositorio** vía
+webhook de GitHub. No hay CI: `.github/workflows` no existe en el repo.
+
+| Servicio | Webhook | Origen |
+|----------|---------|--------|
+| `relevo-gui` | hook `635246930` | Build desde `main` |
+| `relevo-api` | hook `674557340` (creado 2026-09-04) | Build desde `main` |
+
+> **Histórico**: hasta el 2026-09-04 `relevo-api` corría desde una imagen
+> pre-construida en `ghcr.io/hammerdev99/relevo:latest`, publicada a mano. Esa
+> asimetría provocó que el push de `d194208` desplegara solo la GUI y exigiera
+> un deploy manual del API. Resuelto al crear su propio webhook.
+
+**Flujo actual**: `git push origin main` → ambos webhooks disparan → EasyPanel
+reconstruye cada servicio. Verificar el despliegue con el **digest** del
+contenedor (`docker inspect ... --format '{{.Image}}'`), nunca con el tag.
 
 ---
 

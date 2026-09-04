@@ -6,6 +6,8 @@ services:
       - RELEVO_MODE=api
       - DATABASE_URL=sqlite:////app/data/database/relevo.db
       - SECRET_KEY=${SECRET_KEY}
+      # AUDIT-H7: contrasena inicial de coordinacion, nunca en el codigo
+      - RELEVO_SEED_PASSWORD=${RELEVO_SEED_PASSWORD}
       - TZ=America/Bogota
     volumes:
       - relevo_data:/app/data

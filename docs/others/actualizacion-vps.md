@@ -17,20 +17,31 @@
 | Repo | `https://github.com/HammerDev99/Relevo.git` (rama `main`) |
 | **Ruta real de la BD** | `/etc/easypanel/projects/sprintjudicial/relevo-api/volumes/relevo-db-data/relevo.db` |
 
-### Asimetría de despliegue (hallazgo 2026-09-04)
+### Mecanismo de despliegue (resuelto 2026-09-04)
 
-Los dos servicios se actualizan por **mecanismos distintos**:
+Ambos servicios se construyen desde el **Dockerfile del repositorio**, cada uno
+con su propio webhook de GitHub:
 
-| Servicio | Imagen | Mecanismo |
-|----------|--------|-----------|
-| `relevo-gui` | `easypanel/sprintjudicial/relevo-gui` | Build desde Dockerfile en EasyPanel |
-| `relevo-api` | `ghcr.io/hammerdev99/relevo:latest` | **Imagen pre-construida en GHCR** |
+| Servicio | Webhook | Origen |
+|----------|---------|--------|
+| `relevo-gui` | `635246930` | Build desde `main` |
+| `relevo-api` | `674557340` | Build desde `main` |
 
-**No existe `.github/workflows` en el repositorio** — verificado en el working tree, en todo el historial (`git log --all`) y en `origin/main`. La imagen de GHCR se publicó manualmente. Las variables `GIT_SHA` / `DEPLOY_TIMESTAMP` del servicio son remanentes de un pipeline que nunca se materializó (`GIT_SHA=undefined` en `relevo-api`).
+**No existe `.github/workflows`** — verificado en working tree, historial
+completo (`git log --all`) y `origin/main`. No hay CI: el despliegue lo dispara
+el webhook, no un pipeline.
 
-**Consecuencia**: `git push` + *Deploy* **no actualiza `relevo-api`**. EasyPanel solo puede volver a hacer `pull` del mismo tag `:latest`, y Docker Swarm no repite el pull de un tag sin cambios sin forzarlo.
+> **Histórico**: hasta el 2026-09-04 `relevo-api` corría desde
+> `ghcr.io/hammerdev99/relevo:latest`, una imagen publicada a mano. Esa
+> asimetría hizo que el push de `d194208` desplegara **solo la GUI**: el
+> webhook respondió `200 OK`, pero era el de `relevo-gui`. Hizo falta un deploy
+> manual del API. Resuelto al crear su webhook propio.
+>
+> **Lección**: un `200 OK` del webhook confirma la entrega, no que *ese*
+> servicio se haya actualizado. Verificar siempre con el digest (Fase 5.2).
 
-La **Fase 4** de este documento resuelve la asimetría de forma permanente.
+**Flujo actual**: `git push origin main` → ambos webhooks disparan → EasyPanel
+reconstruye cada servicio. Las Fases 3 y 4 quedan como respaldo manual.
 
 ---
 
@@ -310,7 +321,8 @@ docker service scale sprintjudicial_relevo-api=1
 
 ## Fase 7 — Post-despliegue
 
-- [ ] **Rotar la contraseña de coordinación** (`admin123`) desde *Mi Perfil → Cambiar Contraseña*. Deuda P0 vencida desde v6; esta versión pone el alta de usuarios detrás de esa contraseña.
+- [ ] **Definir `RELEVO_SEED_PASSWORD`** en las variables de entorno de `relevo-api` (AUDIT-H7). Sin ella, el seed usa el fallback `cambiar-en-produccion` si alguna vez recrea la cuenta de coordinación.
+- [ ] **Rotar la contraseña de coordinación** desde *Mi Perfil → Cambiar Contraseña*. Deuda P0 vencida desde v6; esta versión pone el alta de usuarios detrás de esa contraseña.
 - [ ] **Avisar a la oficina**: desde esta versión, cualquier empleado autenticado ve los **nombres** de quienes están ausentes en el calendario (RN5 reformulada en PLAN_09). Borrador en `docs/others/comunicacion_empleados.md`.
 - [ ] Actualizar `CREDENCIALES_PRUEBA.md` si se rotaron contraseñas.
 - [ ] Confirmar el backup automático: `crontab -l | grep relevo`

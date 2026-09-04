@@ -15,10 +15,12 @@ def seed() -> None:
     db = SessionLocal()
 
     # 1. Coordinadores
+    # LUISA y JOHN se retiraron del seed el 2026-09-04: ya existen en
+    # producción con su contraseña rotada, y volver a listarlos solo los
+    # recrearía con la credencial por defecto si alguna vez se eliminaran.
+    # Las altas de coordinación se hacen desde el panel (SPEC-S18-B4).
     coordinadores = [
-        ("COORDINADOR GENERAL", "coordinador@test.com", _PASSWORD_COORDINACION)#,
-        #("LUISA", "luisa@test.com", _PASSWORD_COORDINACION),
-        #("JOHN", "john@test.com", _PASSWORD_COORDINACION),
+        ("COORDINADOR GENERAL", "coordinador@test.com", _PASSWORD_COORDINACION),
     ]
     for nombre, correo, password in coordinadores:
         if not db.query(Empleado).filter_by(correo=correo).first():
