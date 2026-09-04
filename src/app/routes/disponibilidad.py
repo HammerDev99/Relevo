@@ -5,27 +5,13 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.auth import get_session_data
+from app.auth import get_empleado_opcional
 from app.database import get_db
 from app.models import Empleado, Grupo, Solicitud
 from app.schemas.disponibilidad import DisponibilidadRead
 from relevo.festivos import es_festivo
 
 router = APIRouter(prefix="/disponibilidad", tags=["disponibilidad"])
-
-
-def _empleado_de_sesion(request: Request, db: Session) -> Empleado | None:
-    """Retorna el empleado autenticado desde la cookie, o None sin levantar excepción."""
-    token = request.cookies.get("session")
-    if not token:
-        return None
-    data = get_session_data(token)
-    if not data or "user_id" not in data:
-        return None
-    empleado = db.get(Empleado, data["user_id"])
-    if not empleado or not empleado.activo:
-        return None
-    return empleado
 
 
 def _estado_para_grupos(
@@ -61,11 +47,15 @@ def consultar_disponibilidad(
     db: Session = Depends(get_db),
 ) -> list[DisponibilidadRead]:
     """
-    Retorna disponibilidad diaria sin PII (RN5).
+    Retorna la disponibilidad diaria (RN5, reformulada en PLAN_09).
 
-    Opción A (SPEC-S16-A1):
-    - Con sesión + grupos: estado relativo a los grupos del usuario.
-    - Sin sesión o sin grupos: vista general informativa (todos los grupos).
+    SPEC-S18-D1: el `estado` evalúa **todos** los grupos, con o sin sesión, de
+    modo que el panorama es idéntico para cualquier visitante.
+
+    - Con sesión: se añaden `empleados_ausentes` (nombres) y
+      `estado_grupo_propio` (el cupo acotado a los grupos del usuario).
+    - Sin sesión: solo estados derivados y nombres de grupo.
+    - El tipo de ausencia y la justificación no se exponen nunca.
     """
     num_dias = calendar.monthrange(anio, mes)[1]
     fecha_inicio_mes = date(anio, mes, 1)
@@ -84,7 +74,7 @@ def consultar_disponibilidad(
 
     # SPEC-S18-D1: el estado del día refleja SIEMPRE todos los grupos, con o
     # sin sesión, para que el panorama sea idéntico al de la vista anónima.
-    empleado = _empleado_de_sesion(request, db)
+    empleado = get_empleado_opcional(request, db)
 
     grupos_evaluar = list(
         db.scalars(select(Grupo).options(selectinload(Grupo.miembros))).all()

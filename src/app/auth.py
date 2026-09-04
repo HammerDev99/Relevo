@@ -36,30 +36,39 @@ def get_session_data(token: str) -> dict[str, Any] | None:
     except Exception:
         return None
 
-def get_empleado_actual(request: Request, db: Session = Depends(get_db)) -> Empleado:
-    """Dependencia para obtener el empleado autenticado desde la cookie."""
+def get_empleado_opcional(request: Request, db: Session = Depends(get_db)) -> Empleado | None:
+    """Empleado autenticado desde la cookie, o `None` (SPEC-S19-B3).
+
+    Para endpoints accesibles sin sesión que ajustan su respuesta según haya
+    o no usuario, como `/disponibilidad` (RN5).
+    """
     token = request.cookies.get("session")
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No autenticado",
-            headers={"WWW-Authenticate": "Cookie"},
-        )
-    
+        return None
+
     data = get_session_data(token)
     if not data or "user_id" not in data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sesión inválida o expirada",
-        )
-    
+        return None
+
     empleado = db.get(Empleado, data["user_id"])
     if not empleado or not empleado.activo:
+        return None
+
+    return empleado
+
+
+def get_empleado_actual(request: Request, db: Session = Depends(get_db)) -> Empleado:
+    """Dependencia para obtener el empleado autenticado desde la cookie.
+
+    SPEC-S19-B3: se apoya en `get_empleado_opcional()` y añade el rechazo.
+    """
+    empleado = get_empleado_opcional(request, db)
+    if empleado is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Empleado no encontrado o inactivo",
+            detail="No autenticado o sesión inválida",
+            headers={"WWW-Authenticate": "Cookie"},
         )
-    
     return empleado
 
 def get_coordinador(empleado: Empleado = Depends(get_empleado_actual)) -> Empleado:

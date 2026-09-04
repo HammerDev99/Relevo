@@ -88,12 +88,12 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 - **Descripción**: `disponibilidad.py::_empleado_de_sesion()` duplica la lógica de `auth.py::get_empleado_actual()`, con la única diferencia de devolver `None` en vez de lanzar `HTTPException`. Viola **DIP**: el router implementa autenticación en vez de depender de la capa de auth.
 - **Archivos**: `src/app/auth.py`, `src/app/routes/disponibilidad.py`
 - **Criterios de Aceptación**:
-    - [ ] `get_empleado_opcional(request, db) -> Empleado | None` en `auth.py`.
-    - [ ] `get_empleado_actual()` se reescribe sobre ella (lanza si es `None`), eliminando la duplicación en ambos sentidos.
-    - [ ] `_empleado_de_sesion()` se elimina de `disponibilidad.py`.
-    - [ ] Los tests de disponibilidad y auth pasan sin modificarse.
+    - [x] `get_empleado_opcional(request, db) -> Empleado | None` en `auth.py`.
+    - [x] `get_empleado_actual()` se reescribe sobre ella (lanza si es `None`), eliminando la duplicación en ambos sentidos.
+    - [x] `_empleado_de_sesion()` se elimina de `disponibilidad.py`.
+    - [x] Los tests de disponibilidad y auth pasan sin modificarse.
 - **Prioridad**: P2
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
 
 ### Fase C — Capacidad de verificación (P1)
 
