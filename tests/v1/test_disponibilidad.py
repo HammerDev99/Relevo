@@ -109,7 +109,7 @@ def test_disponibilidad_sin_pii(client: TestClient, db_session: Session) -> None
 
 
 def test_disponibilidad_por_grupo_con_sesion(client: TestClient, db_session: Session) -> None:
-    """SPEC-S16-A1: con sesión el estado es relativo solo a los grupos del usuario."""
+    """SPEC-S18-D1: con sesión el estado es general; el grupo propio se reporta aparte."""
     from app.auth import create_session_token
 
     # G1: grupo del usuario (2 miembros, sin ausentes ese día)
@@ -164,9 +164,11 @@ def test_disponibilidad_por_grupo_con_sesion(client: TestClient, db_session: Ses
     assert response_sesion.status_code == 200
     data_sesion = response_sesion.json()
     day6_sesion = next(d for d in data_sesion if d["fecha"] == "2026-04-06")
-    # G1 sin ausentes → DISPONIBLE; G2 no se evalúa para este usuario
-    assert day6_sesion["estado"] == "DISPONIBLE"
+    # SPEC-S18-D1: el estado refleja todos los grupos, igual que el anónimo
+    assert day6_sesion["estado"] == "OCUPADO"
     assert day6_sesion["vista_general"] is False
+    # ...pero el usuario ve que SU grupo (G1) sigue disponible
+    assert day6_sesion["estado_grupo_propio"] == "DISPONIBLE"
 
 
 def test_disponibilidad_parametros_invalidos_422(client: TestClient, db_session: Session) -> None:
@@ -252,3 +254,111 @@ def test_disponibilidad_nunca_expone_justificacion(
     assert response.status_code == 200
     assert "DIAGNOSTICO RESERVADO" not in response.text
     assert "permiso" not in response.text
+
+
+def test_disponibilidad_vista_general_con_sesion(
+    client: TestClient, db_session: Session
+) -> None:
+    """SPEC-S18-D1: con sesion el estado refleja TODOS los grupos, como el anonimo."""
+    from app.auth import create_session_token
+
+    # G1: grupo del usuario, sin ausentes
+    g1 = Grupo(nombre="G1_Vista", min_presentes=1)  # cupo_normal=1
+    # G2: otro grupo, saturado ese dia
+    g2 = Grupo(nombre="G2_Vista", min_presentes=1)  # cupo_normal=1
+
+    usuario = Empleado(
+        nombre="Usuario Vista", correo="uv@test.com", password_hash="h", activo=True
+    )
+    comp_g1 = Empleado(
+        nombre="Comp Vista", correo="cv@test.com", password_hash="h", activo=True
+    )
+    aus_g2 = Empleado(
+        nombre="Ausente G2", correo="ag2@test.com", password_hash="h", activo=True
+    )
+    otro_g2 = Empleado(
+        nombre="Otro G2", correo="og2@test.com", password_hash="h", activo=True
+    )
+    usuario.grupos.append(g1)
+    comp_g1.grupos.append(g1)
+    aus_g2.grupos.append(g2)
+    otro_g2.grupos.append(g2)
+    db_session.add_all([g1, g2, usuario, comp_g1, aus_g2, otro_g2])
+    db_session.commit()
+
+    # Ausencia solo en G2
+    db_session.add(Solicitud(
+        empleado_id=aus_g2.id,
+        tipo="vacaciones",
+        fecha_inicio=date(2026, 4, 6),
+        fecha_fin=date(2026, 4, 6),
+        dias_habiles=1,
+        estado="aprobada",
+    ))
+    db_session.commit()
+
+    anonimo = client.get("/disponibilidad?anio=2026&mes=4").json()
+    dia_anon = next(d for d in anonimo if d["fecha"] == "2026-04-06")
+
+    token = create_session_token({"user_id": usuario.id})
+    con_sesion = client.get(
+        "/disponibilidad?anio=2026&mes=4", cookies={"session": token}
+    ).json()
+    dia_ses = next(d for d in con_sesion if d["fecha"] == "2026-04-06")
+
+    # El estado con sesion coincide con el anonimo (vista general)
+    assert dia_ses["estado"] == dia_anon["estado"] == "OCUPADO"
+
+    # Pero el usuario sabe que SU grupo (G1) sigue disponible
+    assert dia_ses["estado_grupo_propio"] == "DISPONIBLE"
+
+
+def test_disponibilidad_estado_grupo_propio_ausente_sin_sesion(
+    client: TestClient, db_session: Session
+) -> None:
+    """SPEC-S18-D1: sin sesion no hay grupo propio que reportar."""
+    g = Grupo(nombre="G_SinSesion", min_presentes=1)
+    emp = Empleado(nombre="X", correo="x_ss@test.com", password_hash="h", activo=True)
+    emp.grupos.append(g)
+    db_session.add_all([g, emp])
+    db_session.commit()
+
+    data = client.get("/disponibilidad?anio=2026&mes=4").json()
+    assert all(d["estado_grupo_propio"] is None for d in data)
+
+
+def test_disponibilidad_usuario_sin_grupos_no_reporta_propio(
+    client: TestClient, db_session: Session
+) -> None:
+    """SPEC-S18-D1: un usuario sin grupos (BRIGITH) ve la vista general sin aviso."""
+    from app.auth import create_session_token
+
+    g = Grupo(nombre="G_Otro", min_presentes=1)
+    aus = Empleado(nombre="Aus", correo="aus_sg@test.com", password_hash="h", activo=True)
+    otro = Empleado(nombre="Otro", correo="otro_sg@test.com", password_hash="h", activo=True)
+    aus.grupos.append(g)
+    otro.grupos.append(g)
+    sin_grupo = Empleado(
+        nombre="Brigith", correo="brig_sg@test.com", password_hash="h", activo=True
+    )
+    db_session.add_all([g, aus, otro, sin_grupo])
+    db_session.commit()
+
+    db_session.add(Solicitud(
+        empleado_id=aus.id,
+        tipo="vacaciones",
+        fecha_inicio=date(2026, 4, 6),
+        fecha_fin=date(2026, 4, 6),
+        dias_habiles=1,
+        estado="aprobada",
+    ))
+    db_session.commit()
+
+    token = create_session_token({"user_id": sin_grupo.id})
+    data = client.get(
+        "/disponibilidad?anio=2026&mes=4", cookies={"session": token}
+    ).json()
+    dia = next(d for d in data if d["fecha"] == "2026-04-06")
+
+    assert dia["estado"] == "OCUPADO"  # ve el panorama completo
+    assert dia["estado_grupo_propio"] is None  # no tiene grupo propio

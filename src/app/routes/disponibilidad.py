@@ -82,26 +82,22 @@ def consultar_disponibilidad(
         )
     ).all()
 
-    # Determinar grupos a evaluar y modo de vista
+    # SPEC-S18-D1: el estado del día refleja SIEMPRE todos los grupos, con o
+    # sin sesión, para que el panorama sea idéntico al de la vista anónima.
     empleado = _empleado_de_sesion(request, db)
-    vista_general: bool
 
-    if empleado and empleado.grupos:
-        grupos_ids = [g.id for g in empleado.grupos]
-        grupos_evaluar = list(
-            db.scalars(
-                select(Grupo)
-                .options(selectinload(Grupo.miembros))
-                .where(Grupo.id.in_(grupos_ids))
-            ).all()
-        )
-        vista_general = False
-    else:
-        # Sin sesión o usuario sin grupos: evalúa todos los grupos
-        grupos_evaluar = list(
-            db.scalars(select(Grupo).options(selectinload(Grupo.miembros))).all()
-        )
-        vista_general = True
+    grupos_evaluar = list(
+        db.scalars(select(Grupo).options(selectinload(Grupo.miembros))).all()
+    )
+
+    # Grupos del usuario: permiten avisar si SU cupo sigue libre aunque el día
+    # aparezca ocupado por saturación de otro grupo (RN3 se evalúa por grupo).
+    grupos_propios = (
+        [g for g in grupos_evaluar if g.id in {gr.id for gr in empleado.grupos}]
+        if empleado and empleado.grupos
+        else []
+    )
+    vista_general = not grupos_propios
 
     resultado: list[DisponibilidadRead] = []
 
@@ -133,6 +129,14 @@ def consultar_disponibilidad(
                 if s.empleado.nombre not in empleados_ausentes:
                     empleados_ausentes.append(s.empleado.nombre)
 
+        # SPEC-S18-D1: reutiliza el mismo cálculo de cupos, acotado a los
+        # grupos del usuario. None cuando no hay sesión o no tiene grupos.
+        estado_grupo_propio = (
+            _estado_para_grupos(grupos_propios, ausentes_dia)
+            if grupos_propios
+            else None
+        )
+
         resultado.append(DisponibilidadRead(
             fecha=actual,
             estado=estado,
@@ -140,6 +144,7 @@ def consultar_disponibilidad(
             grupos_ausentes=grupos_ausentes,
             vista_general=vista_general,
             empleados_ausentes=empleados_ausentes,
+            estado_grupo_propio=estado_grupo_propio,
         ))
 
     return resultado

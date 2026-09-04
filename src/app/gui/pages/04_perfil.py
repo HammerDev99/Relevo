@@ -83,53 +83,31 @@ def show() -> None:
     # Sección de cambio de contraseña
     st.subheader("🔐 Cambiar Contraseña")
 
-    with st.expander("Cambiar mi contraseña", expanded=False):
-        current_password = st.text_input(
-            "Contraseña Actual",
-            type="password",
-            key="current_password"
-        )
-        new_password = st.text_input(
-            "Nueva Contraseña",
-            type="password",
-            key="new_password"
-        )
-        confirm_password = st.text_input(
-            "Confirmar Nueva Contraseña",
-            type="password",
-            key="confirm_password"
-        )
+    # SPEC-S18-D2: el formulario va dentro de st.form. Con st.button suelto,
+    # Streamlit reejecutaba el script y emitía un segundo PATCH con la
+    # contraseña ya obsoleta: el 400 de esa segunda llamada tapaba el 200 de
+    # la primera y mostraba un error falso tras un cambio exitoso.
+    with st.expander("Cambiar mi contraseña", expanded=False), st.form("cambiar_password"):
+        current_password = st.text_input("Contraseña Actual", type="password")
+        new_password = st.text_input("Nueva Contraseña", type="password")
+        confirm_password = st.text_input("Confirmar Nueva Contraseña", type="password")
 
-        col_btn1, col_btn2, _ = st.columns([1, 1, 2])
-        with col_btn1:
-            if st.button("Actualizar Contraseña", type="primary"):
-                if not current_password or not new_password:
-                    st.error("Por favor complete todos los campos")
-                elif new_password != confirm_password:
-                    st.error("Las contraseñas nuevas no coinciden")
-                elif len(new_password) < 6:
-                    st.error("La nueva contraseña debe tener al menos 6 caracteres")
-                elif current_password == new_password:
-                    st.error("La nueva contraseña debe ser diferente a la actual")
-                else:
-                    # Llamar al endpoint de cambio de contraseña
-                    result = auth.change_password(current_password, new_password)
-                    if result:
-                        st.success("✅ Contraseña actualizada exitosamente")
-                        for k in ["current_password", "new_password", "confirm_password"]:
-                            st.session_state.pop(k, None)
-                        st.rerun()
-                    else:
-                        st.error(
-                            "❌ Error al actualizar la contraseña. "
-                            "Verifique que la contraseña actual sea correcta."
-                        )
-
-        with col_btn2:
-            if st.button("Cancelar"):
-                for k in ["current_password", "new_password", "confirm_password"]:
-                    st.session_state.pop(k, None)
-                st.rerun()
+        if st.form_submit_button("Actualizar Contraseña", type="primary"):
+            if not current_password or not new_password:
+                st.error("Por favor complete todos los campos")
+            elif new_password != confirm_password:
+                st.error("Las contraseñas nuevas no coinciden")
+            elif len(new_password) < 6:
+                st.error("La nueva contraseña debe tener al menos 6 caracteres")
+            elif current_password == new_password:
+                st.error("La nueva contraseña debe ser diferente a la actual")
+            elif auth.change_password(current_password, new_password):
+                st.success("✅ Contraseña actualizada exitosamente")
+            else:
+                st.error(
+                    "❌ Error al actualizar la contraseña. "
+                    "Verifique que la contraseña actual sea correcta."
+                )
 
     st.info("💡 Recuerde usar una contraseña segura con al menos 6 caracteres.")
 

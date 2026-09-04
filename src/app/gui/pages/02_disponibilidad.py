@@ -228,12 +228,14 @@ def show() -> None:
                 "razon": None,
                 "grupos_ausentes": [],
                 "empleados_ausentes": [],
+                "estado_grupo_propio": None,
             },
         )
         estado = dato["estado"]
         razon = dato.get("razon")
         grupos = dato.get("grupos_ausentes", [])
         ausentes = dato.get("empleados_ausentes", [])
+        estado_propio = dato.get("estado_grupo_propio")
 
         # SPEC-S15-C4: festivos / fines de semana en gris
         if razon in ["Festivo", "Fin de semana"]:
@@ -255,6 +257,10 @@ def show() -> None:
                 partes.append(f"Ausentes: {', '.join(ausentes)}")
             if mostrar_tooltip and grupos:
                 partes.append(f"Grupos con ausencias: {', '.join(grupos)}")
+            # SPEC-S18-D1: avisar si el cupo propio sigue libre aunque el día
+            # aparezca ocupado por saturación de otro grupo.
+            if estado_propio and estado_propio != estado:
+                partes.append(f"Tu grupo: {estado_propio}")
             titulo = " | ".join(partes) or (razon or "")
 
         # El tooltip se inyecta con unsafe_allow_html: escapar el contenido

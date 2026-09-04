@@ -5,7 +5,7 @@
 | **Fecha** | 2026-09-04 |
 | **Fase CDAID** | Do |
 | **Milestone** | v8 |
-| **SPECs** | SPEC-S18-B1..B5, SPEC-S18-A1..A4 |
+| **SPECs** | SPEC-S18-B1..B5, A1..A4, C1, D1..D2 (12) |
 | **Estado** | ✅ Done |
 
 ---
@@ -46,6 +46,23 @@ Orden de ejecución: Fase B primero, por no tener decisiones pendientes.
 
 **Decisión de contrato**: RN5 se **reformula, no se deroga**. Se exponen solo nombres, solo a usuarios autenticados. Tipo y justificación permanecen protegidos en todos los casos. Ver PLAN_09 §3.
 
+### 2.3 Fase C — Idempotencia del seed (TDD)
+
+| SPEC | Cambios | Commit |
+|------|---------|--------|
+| SPEC-S18-C1 | `seed.py`: la asignación de grupos pasa dentro del `if not user`; se elimina la reescritura de `min_presentes`. `tests/v1/test_seed.py` nuevo con 4 tests | `fbc5cd8` |
+
+Detectado al preparar el despliegue: el seed corre en cada arranque y revertía los grupos ajustados desde Coordinación. **Confirmado con datos reales**: el snapshot previo al despliegue mostraba a YESENIA, FLOR y DANIEL en G2/G2/G3 frente a G3/G1/G2 del seed. Tras el despliegue conservaron sus grupos — el fix quedó demostrado en producción.
+
+### 2.4 Fase D — Correcciones post-despliegue (TDD)
+
+| SPEC | Cambios | Commit |
+|------|---------|--------|
+| SPEC-S18-D1 | `routes/disponibilidad.py`: el estado evalúa siempre todos los grupos; `+estado_grupo_propio` reutilizando `_estado_para_grupos()`. Tooltip con aviso `Tu grupo: …`. 3 tests nuevos + 1 actualizado | (ver git log) |
+| SPEC-S18-D2 | `gui/pages/04_perfil.py`: el cambio de contraseña pasa a `st.form` + `st.form_submit_button` | (ver git log) |
+
+**Causa raíz de D2** (corrige el diagnóstico preliminar de "doble click"): `st.button` fuera de `st.form` con `text_input` que tienen `key=` hace que Streamlit reejecute el bloque y emita un segundo `PATCH` con la contraseña ya obsoleta. Determinista, sin intervención del usuario.
+
 ---
 
 ## 3. Archivos creados/modificados
@@ -61,7 +78,10 @@ Orden de ejecución: Fase B primero, por no tener decisiones pendientes.
 | `tests/v1/test_coordinacion.py` | Modificado | B5 |
 | `src/app/schemas/disponibilidad.py` | Modificado | A1 |
 | `src/app/routes/disponibilidad.py` | Modificado | A1 |
-| `src/app/gui/pages/02_disponibilidad.py` | Modificado | A2 |
+| `src/app/gui/pages/02_disponibilidad.py` | Modificado | A2, D1 |
+| `src/app/seed.py`, `tests/v1/test_seed.py` | Mod / Nuevo | C1 |
+| `src/app/gui/pages/04_perfil.py` | Modificado | D2 |
+| `docs/others/actualizacion-vps.md` | Nuevo | — (operación) |
 | `CLAUDE.md`, `README.md`, `agent_docs/reglas_concurrencia.md` | Modificado | A3 |
 | `tests/v1/test_disponibilidad.py` | Modificado | A4 |
 | `scripts/crear_empleados.py` | Nuevo | — (contingencia) |
@@ -72,7 +92,7 @@ Orden de ejecución: Fase B primero, por no tener decisiones pendientes.
 
 | Check | Resultado |
 |-------|-----------|
-| `pytest` | **68 passed** (60 previos + 8 nuevos), sin regresión |
+| `pytest` | **75 passed** (60 previos + 15 nuevos), sin regresión |
 | `ruff check src tests scripts` | Limpio |
 | Tests Success/Failure | 6 en Fase B (2/4), 2 nuevos + 1 reformulado en Fase A |
 
@@ -83,5 +103,5 @@ Orden de ejecución: Fase B primero, por no tener decisiones pendientes.
 ## 5. Pendiente al cierre del sprint
 
 - [ ] AUDIT_11 (fase Check) — auditoría del milestone v8.
-- [ ] Despliegue al VPS y verificación del alta de extremo a extremo en producción.
+- [x] Despliegue al VPS (2026-09-04) — digest verificado, `GIT_SHA=93098773d1`, datos intactos.
 - [ ] **Rotación de la contraseña de coordinación (`admin123`)** — deuda P0 vencida desde v6, heredada a PLAN_09 §5.

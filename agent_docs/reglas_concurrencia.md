@@ -74,8 +74,16 @@ Las composiciones permitidas por RN4 (vacaciones+permiso, o 2 permisos justifica
 
 El endpoint `GET /disponibilidad` proyecta el estado de cupos por día:
 
-- **Con sesión**: evalúa solo los grupos del usuario → estado personalizado.
-- **Sin sesión**: evalúa todos los grupos → estado más restrictivo (vista general).
+- **El estado del día evalúa siempre TODOS los grupos** (vista general), con o sin sesión.
+- **Con sesión y grupos**: además se reporta `estado_grupo_propio`, el estado
+  acotado a los grupos del usuario.
+
+> **Cambio en SPEC-S18-D1 (2026-09-04)**: hasta el milestone v8, con sesión el
+> calendario evaluaba *solo* los grupos del usuario (Opción A, SPEC-S16-A1). Eso
+> hacía que un empleado viera menos días pintados que en la vista anónima. Ahora
+> el panorama es idéntico para todos, y `estado_grupo_propio` evita el efecto
+> secundario: sin él, un empleado de G1 vería un día rojo por saturación de G2 y
+> no solicitaría, aunque su grupo tuviera cupo libre.
 
 El calendario es una **proyección de lectura**; el motor de reglas en `domain.py` es la fuente de verdad al momento de crear solicitudes.
 

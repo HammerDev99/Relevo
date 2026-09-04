@@ -12,5 +12,8 @@ class DisponibilidadRead(BaseModel):
     # SPEC-S18-A1 (RN5, PLAN_09): nombres de ausentes.
     # Solo se puebla con sesión válida; nunca incluye tipo ni justificación.
     empleados_ausentes: list[str] = []
+    # SPEC-S18-D1: estado relativo solo a los grupos del usuario.
+    # None sin sesión o si el usuario no tiene grupos.
+    estado_grupo_propio: str | None = None
 
     model_config = ConfigDict(frozen=True, from_attributes=True)

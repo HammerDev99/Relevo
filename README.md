@@ -102,7 +102,7 @@ El calendario muestra el estado de disponibilidad de cada día:
 - **Con sesión iniciada**: estado relativo a los grupos del usuario. Si G3 tiene cupo lleno pero G2 está disponible, un empleado de G2 verá ese día como 🟢 Disponible.
 - **Sin sesión** (vista pública): vista informativa general — estado más restrictivo entre todos los grupos.
 
-Al pasar el cursor sobre un día ocupado, un usuario autenticado ve los **nombres** de quienes están ausentes. Si además el tooltip de grupos está activo (configurable desde el Panel de Coordinación), se muestran también los **grupos** con ausencias. El **motivo y el tipo** de la ausencia nunca se exponen, y sin sesión iniciada no se muestran nombres (RN5, reformulada en PLAN_09).
+El calendario pinta la ocupación de **todos los grupos**, tanto con sesión como sin ella. Al pasar el cursor sobre un día ocupado, un usuario autenticado ve los **nombres** de quienes están ausentes y, si su propio grupo tiene un estado distinto al global, un aviso `Tu grupo: …` que le indica que aún puede solicitar. Si además el tooltip de grupos está activo (configurable desde el Panel de Coordinación), se muestran también los **grupos** con ausencias. El **motivo y el tipo** de la ausencia nunca se exponen, y sin sesión iniciada no se muestran nombres (RN5, reformulada en PLAN_09).
 
 ### Respaldo obligatorio
 

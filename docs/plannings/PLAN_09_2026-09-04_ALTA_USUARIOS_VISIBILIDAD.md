@@ -172,6 +172,38 @@ La restricción está implementada en tres capas:
 - **Prioridad**: P0
 - **Estado**: `[x]` | **Verificado**: 2026-09-04 | **Commit**: `(ver git log)`
 
+### Fase D — Correcciones post-despliegue v8 (P0/P1)
+
+> Origen: verificación funcional en producción tras el despliegue del milestone v8 (2026-09-04).
+
+#### SPEC-S18-D1: Calendario en vista general para usuarios autenticados
+- **Origen**: Observación del usuario en producción — al iniciar sesión, el calendario pinta menos días que en modo anónimo.
+- **Descripción**: `routes/disponibilidad.py` evalúa **solo los grupos del usuario** cuando hay sesión (`SPEC-S16-A1`, Opción A). El usuario requiere ver el panorama completo, igual que la vista anónima, sin perder la señal de su propio cupo.
+- **Decisión (2026-09-04)**: **vista general + aviso del grupo propio**. El color del día refleja todos los grupos; el tooltip informa además el estado del grupo del usuario.
+- **Motivo del aviso**: sin él, un empleado de G1 vería un día en rojo por saturación de G2 y no solicitaría, aunque su grupo tenga cupo libre (RN3 se evalúa por grupo).
+- **Archivos**: `src/app/routes/disponibilidad.py`, `src/app/schemas/disponibilidad.py`, `src/app/gui/pages/02_disponibilidad.py`
+- **Criterios de Aceptación**:
+    - [x] Con sesión, `estado` se calcula sobre **todos** los grupos (idéntico a la vista anónima).
+    - [x] `DisponibilidadRead` incorpora `estado_grupo_propio: str | None`, poblado solo si el usuario tiene grupos.
+    - [x] El tooltip muestra el estado del grupo propio cuando difiere del global.
+    - [x] Se reutiliza `_estado_para_grupos()` sin duplicar lógica de cupos.
+    - [x] Sin sesión, el comportamiento no cambia.
+- **Prioridad**: P1
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
+
+#### SPEC-S18-D2: Doble PATCH en el cambio de contraseña
+- **Origen**: Reporte del usuario + logs del VPS (2026-09-04): `PATCH /usuarios/me/password -> 200 OK` seguido de `-> 400 Bad Request`, mostrando un error falso tras un cambio exitoso.
+- **Causa raíz** (verificada en código, corrige el diagnóstico preliminar de "doble click"): `gui/pages/04_perfil.py:105` usa `st.button` **fuera** de un `st.form`. Streamlit re-ejecuta el script en cada interacción de widget; como los `text_input` tienen `key=`, sus valores persisten en `session_state` y el bloque puede reevaluarse, emitiendo un segundo `PATCH` con la contraseña ya obsoleta. **Es determinista, no requiere doble click del usuario.**
+- **Impacto**: el usuario ve "Error al actualizar la contraseña" cuando el cambio **sí** se aplicó. Puede reintentar con la contraseña vieja, o creer que sigue vigente.
+- **Descartado**: hacer el endpoint idempotente (devolver éxito si `current_password` no coincide) debilitaría una validación de seguridad legítima.
+- **Archivos**: `src/app/gui/pages/04_perfil.py`
+- **Criterios de Aceptación**:
+    - [x] El bloque de cambio de contraseña se envuelve en `st.form` con `st.form_submit_button`, replicando el patrón ya usado en `03_coordinacion.py`.
+    - [x] Una sola petición `PATCH` por envío.
+    - [x] El endpoint `cambiar_password` no se modifica: la validación de contraseña actual se conserva intacta.
+- **Prioridad**: P0 — induce a error sobre el estado de una credencial
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
+
 ---
 
 ## 3. Decisión de Diseño: reformulación de RN5
@@ -227,7 +259,7 @@ La restricción está implementada en tres capas:
 
 ## 6. Criterio de Cierre del Milestone
 
-- [x] Los 10 SPECs marcados `[x]` con commit asociado.
+- [x] Los 12 SPECs marcados `[x]` con commit asociado.
 - [x] `pytest -x` verde; sin regresión sobre los 60 tests previos.
 - [x] `ruff check src tests scripts` limpio.
 - [ ] Alta de un empleado verificada de extremo a extremo desde la GUI.
