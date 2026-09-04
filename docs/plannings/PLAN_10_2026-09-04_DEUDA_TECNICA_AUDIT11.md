@@ -76,12 +76,14 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 - **Beneficio adicional**: hoy cada método decide por su cuenta si muestra `st.error` o devuelve `False` en silencio — comportamiento inconsistente ante fallos de red.
 - **Archivos**: `src/app/gui/services/base_service.py` (nuevo), los 4 servicios existentes
 - **Criterios de Aceptación**:
-    - [ ] `BaseAPIService` con `base_url`, `get_auth_headers()` y helpers HTTP.
-    - [ ] Los 4 servicios heredan; el bloque `httpx.Client` desaparece de los métodos individuales.
-    - [ ] Manejo de error homogéneo y documentado.
-    - [ ] Sin cambios en la firma pública de los métodos: las páginas no se tocan.
+    - [x] `BaseAPIService` con `base_url`, `get_auth_headers()` y helpers HTTP.
+    - [x] Los 4 servicios heredan; el bloque `httpx.Client` desaparece de los métodos individuales.
+    - [x] Manejo de error homogéneo y documentado.
+    - [x] Sin cambios en la firma pública de los métodos: las páginas no se tocan.
 - **Prioridad**: P2 — el de mayor impacto en líneas, y el de mayor riesgo de regresión
-- **Estado**: `[ ]`
+- **Resultado**: 19 bloques `httpx.Client` → **1**. Servicios de 425 a 403 líneas *incluyendo* las 95 de la base nueva; el código de los 4 servicios concretos baja de 425 a 308 (−28%).
+- **Efecto colateral**: los servicios anidaban un `AuthService` interno (`self.auth`) solo para obtener las cabeceras. `get_auth_headers()` sube a la base y ese anidamiento desaparece; `01_solicitudes.py` pasa a instanciar `AuthService` directamente.
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
 
 #### SPEC-S19-B3: `get_empleado_opcional()` en `auth.py`
 - **Origen**: AUDIT_11 H20 (heredado de AUDIT_10 H16 — **dos auditorías diferido**)

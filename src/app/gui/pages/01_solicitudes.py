@@ -3,6 +3,7 @@ from datetime import date, timedelta
 import streamlit as st
 
 from app.gui import session_keys
+from app.gui.services.auth_service import AuthService
 from app.gui.services.solicitud_service import SolicitudService
 from app.gui.utils.auth_guard import require_auth
 
@@ -53,7 +54,8 @@ def show() -> None:
     """, unsafe_allow_html=True)
 
     service = SolicitudService()
-    auth = service.auth
+    # SPEC-S19-B2: los servicios ya no anidan un AuthService; se instancia aquí
+    auth = AuthService()
     
     # Obtener info del usuario actual para filtrar backup
     me = auth.get_me()

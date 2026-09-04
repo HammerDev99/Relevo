@@ -1,54 +1,51 @@
 from typing import Any, cast
 
-import httpx
 import streamlit as st
 
 from app.gui import session_keys
+from app.gui.services.base_service import BaseAPIService
 from app.gui.utils.logger import log_gui_action
 from app.roles import ROL_EMPLEADO
 
 
-class AuthService:
+class AuthService(BaseAPIService):
     """Servicio para gestionar la autenticación con el backend FastAPI."""
-    
-    def __init__(self, base_url: str = "http://relevo-api:8000"):
-        # En Docker, el servicio relevo-api es accesible por su nombre
-        self.base_url = base_url
 
     @log_gui_action("AuthService")
     def login(self, email: str, password: str) -> bool:
         """Intenta iniciar sesión y guarda el estado en session_state."""
-        try:
-            with httpx.Client(base_url=self.base_url) as client:
-                response = client.post(
-                    "/login", 
-                    data={"correo": email, "password": password},
-                    follow_redirects=True
-                )
-                
-                if response.status_code == 200:
-                    data = cast(dict[str, Any], response.json())
-                    st.session_state[session_keys.IS_AUTHENTICATED] = True
-                    st.session_state[session_keys.USER_EMAIL] = email
-                    st.session_state[session_keys.USER_ROLE] = data.get("rol", ROL_EMPLEADO)
-                    st.session_state[session_keys.AUTH_TOKEN] = response.cookies.get("session")
-                    return True
-                else:
-                    err = response.json().get("detail", "Credenciales inválidas")
-                    st.error(f"Error de login: {err}")
-                    return False
-        except Exception as e:
-            st.error(f"Error de conexión con el servidor: {str(e)}")
+        respuesta = self._request(
+            "POST", "/login",
+            data={"correo": email, "password": password},
+            autenticado=False,
+            follow_redirects=True,
+            mostrar_error=False,
+        )
+        if respuesta is None:
+            st.error("Error de conexión con el servidor")
             return False
+
+        if respuesta.status_code != 200:
+            st.error(
+                f"Error de login: {self._detalle_error(respuesta, 'Credenciales inválidas')}"
+            )
+            return False
+
+        data = cast(dict[str, Any], respuesta.json())
+        st.session_state[session_keys.IS_AUTHENTICATED] = True
+        st.session_state[session_keys.USER_EMAIL] = email
+        st.session_state[session_keys.USER_ROLE] = data.get("rol", ROL_EMPLEADO)
+        st.session_state[session_keys.AUTH_TOKEN] = respuesta.cookies.get("session")
+        return True
 
     @log_gui_action("AuthService")
     def logout(self) -> None:
         """Limpia la sesión local."""
         for key in [
-            session_keys.IS_AUTHENTICATED, 
-            session_keys.USER_EMAIL, 
-            session_keys.USER_ROLE, 
-            session_keys.AUTH_TOKEN
+            session_keys.IS_AUTHENTICATED,
+            session_keys.USER_EMAIL,
+            session_keys.USER_ROLE,
+            session_keys.AUTH_TOKEN,
         ]:
             if key in st.session_state:
                 del st.session_state[key]
@@ -56,22 +53,19 @@ class AuthService:
 
     @log_gui_action("AuthService")
     def get_me(self) -> dict[str, Any] | None:
-        """Obtiene el perfil del usuario actual."""
-        try:
-            headers = self.get_auth_headers()
-            with httpx.Client(base_url=self.base_url) as client:
-                # Necesitamos un endpoint /me o similar. 
-                # Por ahora podemos buscar en /usuarios por correo si no hay /me
-                response = client.get("/usuarios", headers=headers)
-                if response.status_code == 200:
-                    usuarios = cast(list[dict[str, Any]], response.json())
-                    email = st.session_state.get(session_keys.USER_EMAIL)
-                    for u in usuarios:
-                        if u["correo"] == email:
-                            return u
-                return None
-        except Exception:
+        """Obtiene el perfil del usuario actual.
+
+        No existe un endpoint `/me`: se localiza por correo en `/usuarios`.
+        """
+        usuarios = self._get_json("/usuarios", por_defecto=None)
+        if usuarios is None:
             return None
+
+        email = st.session_state.get(session_keys.USER_EMAIL)
+        for u in cast(list[dict[str, Any]], usuarios):
+            if u["correo"] == email:
+                return u
+        return None
 
     @property
     def is_authenticated(self) -> bool:
@@ -81,28 +75,12 @@ class AuthService:
     def user_role(self) -> str:
         return cast(str, st.session_state.get(session_keys.USER_ROLE, ROL_EMPLEADO))
 
-    def get_auth_headers(self) -> dict[str, str]:
-        """Retorna los headers/cookies necesarios para peticiones autenticadas."""
-        token = st.session_state.get(session_keys.AUTH_TOKEN)
-        if token:
-            return {"Cookie": f"session={token}"}
-        return {}
-
     @log_gui_action("AuthService")
     def change_password(self, current_password: str, new_password: str) -> bool:
         """SPEC-S14-C4: Cambia la contraseña del usuario actual."""
-        try:
-            headers = self.get_auth_headers()
-            with httpx.Client(base_url=self.base_url) as client:
-                response = client.patch(
-                    "/usuarios/me/password",
-                    json={
-                        "current_password": current_password,
-                        "new_password": new_password
-                    },
-                    headers=headers
-                )
-                return response.status_code == 200
-        except Exception as e:
-            st.error(f"Error al cambiar contraseña: {str(e)}")
-            return False
+        respuesta = self._request(
+            "PATCH", "/usuarios/me/password",
+            json={"current_password": current_password, "new_password": new_password},
+            mensaje_error="Error al cambiar contraseña",
+        )
+        return respuesta is not None and respuesta.status_code == 200
