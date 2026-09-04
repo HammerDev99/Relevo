@@ -40,7 +40,7 @@ Al desplegar la versión v3 (Autogestión por Grupos), SQLAlchemy creará autom�
 
 Para que los usuarios actuales mantengan la coherencia con el nuevo motor de concurrencia:
 1. El script `src/app/seed.py` se ejecuta automáticamente al iniciar el contenedor gracias a `docker-entrypoint.sh`.
-2. Dicho script valida si el usuario ya existe, sin sobrescribir su contraseña, y automáticamente **le asigna sus nuevos grupos** según el mapeo base configurado.
+2. Dicho script valida si el usuario ya existe y **no lo modifica**: contraseña, rol y grupos se conservan. Los grupos del mapeo base solo se asignan al **crear** un empleado por primera vez (SPEC-S18-C1), de modo que los reinicios del contenedor no revierten los ajustes hechos desde el panel de Coordinación.
 3. El historial de `Solicitud` no se altera, manteniendo la continuidad de la trazabilidad. No se requieren scripts manuales de SQL (ALTER TABLE) adicionales.
 
 ## 7. Despliegue VPS (EasyPanel + Docker Compose)

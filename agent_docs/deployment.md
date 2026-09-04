@@ -71,6 +71,7 @@ docker-compose -f docker-compose.dev.yml up --build
 
 | Tarea | Documento |
 |-------|-----------|
+| **Actualizar la app ya desplegada (con datos)** | **`docs/others/actualizacion-vps.md`** |
 | Despliegue inicial en VPS | `docs/others/deploy-vps-instructions.md` |
 | Rotación de logs (logrotate + daemon.json) | `docs/others/deploy-vps-instructions.md` §6 |
 | Backup automatizado | `docs/others/deploy-vps-instructions.md` §7 |
