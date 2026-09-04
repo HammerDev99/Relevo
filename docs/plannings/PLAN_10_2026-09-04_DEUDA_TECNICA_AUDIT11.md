@@ -64,11 +64,11 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 - **Nota**: son 2 ocurrencias — la Regla de Tres aún no obliga. Se incluye porque el alta de usuarios (SPEC-S18-B2) ya la elevó a 2 y una tercera es previsible.
 - **Archivos**: `src/app/routes/coordinacion.py`
 - **Criterios de Aceptación**:
-    - [ ] Helper `_resolver_grupos(db, grupo_ids) -> list[Grupo]`.
-    - [ ] Ambos endpoints lo consumen; comportamiento idéntico.
-    - [ ] Los tests de `test_coordinacion.py` pasan sin modificarse (prueba de equivalencia).
+    - [x] Helper `_resolver_grupos(db, grupo_ids) -> list[Grupo]`.
+    - [x] Ambos endpoints lo consumen; comportamiento idéntico.
+    - [x] Los tests de `test_coordinacion.py` pasan sin modificarse (prueba de equivalencia).
 - **Prioridad**: P2
-- **Estado**: `[ ]`
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
 
 #### SPEC-S19-B2: Clase base para los servicios GUI
 - **Origen**: AUDIT_11 H14
@@ -121,6 +121,30 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 - **Prioridad**: P1 — afecta la aplicación de RN3
 - **Estado**: `[ ]` — **bloqueado**: requiere decisión del usuario
 
+### Fase D — Ajuste de alcance del listado táctil (P1)
+
+#### SPEC-S19-D1: El listado de ausencias solo para usuarios autenticados
+- **Origen**: solicitud del usuario (2026-09-04), tras el despliegue de SPEC-S18-E2.
+- **Descripción**: el desplegable *"📋 Detalle de días con ausencias (N)"* se renderiza siempre que haya días con ausencias, **también sin sesión iniciada**. En esa vista `empleados_ausentes` viene vacío por RN5, de modo que el panel solo muestra nombres de grupo: información redundante con el color del calendario y con el tooltip.
+- **Decisión**: mostrar el desplegable **únicamente con sesión activa**. El calendario, los colores, la leyenda y el tooltip permanecen **sin cambios** en ambas vistas.
+- **Coherencia con RN5**: refuerza la separación ya establecida — la vista anónima no ofrece un panel de detalle; los nombres siguen siendo exclusivos de usuarios autenticados.
+- **Archivos**: `src/app/gui/pages/02_disponibilidad.py`
+- **Criterios de Aceptación**:
+    - [x] El desplegable solo se renderiza si hay sesión iniciada.
+    - [x] Sin sesión: el calendario funciona igual (colores, leyenda, navegación, tooltip de grupos).
+    - [x] Con sesión: comportamiento idéntico al actual.
+    - [x] Se reutiliza el indicador de sesión ya disponible, sin peticiones nuevas.
+
+> **Hallazgo durante la implementación**: `session_keys.USER_ID` **nunca se
+> escribe** — `auth_service.login()` popula `IS_AUTHENTICATED`, `USER_EMAIL`,
+> `USER_ROLE` y `AUTH_TOKEN`, pero no `USER_ID`. Condicionar el panel a esa
+> clave lo habría ocultado para todos. Se usa `IS_AUTHENTICATED` para la
+> condición y `USER_EMAIL` como clave de caché de SPEC-S18-E1, que hasta ahora
+> recibía siempre `None` y por tanto **no segmentaba por usuario**: dos sesiones
+> distintas podían compartir respuesta cacheada, con riesgo para RN5.
+- **Prioridad**: P1
+- **Estado**: `[x]` | **Verificado**: 2026-09-04
+
 ---
 
 ## 3. Fuera de alcance (aceptado como deuda)
@@ -157,7 +181,7 @@ Los 2 DEFECTOS se corrigieron en la fase Act del propio sprint. Las **6 divergen
 
 ## 6. Criterio de Cierre del Milestone
 
-- [ ] SPECs A1, A2, B1, B2, B3 y C1 marcados `[x]` con commit asociado.
+- [ ] SPECs A1, A2, B1, B2, B3, C1 y D1 marcados `[x]` con commit asociado.
 - [ ] C2 resuelto o formalmente reasignado si la decisión sigue pendiente.
 - [ ] `pytest -x` verde, sin regresión sobre los 76 tests actuales.
 - [ ] `ruff check` y `mypy src` limpios.

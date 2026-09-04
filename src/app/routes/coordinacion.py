@@ -13,6 +13,15 @@ from app.schemas.usuarios import UsuarioCreate, UsuarioRead, UsuarioUpdate
 
 router = APIRouter(prefix="/coordinacion", tags=["coordinacion"])
 
+
+def _resolver_grupos(db: Session, grupo_ids: list[int]) -> list[Grupo]:
+    """Traduce ids de grupo a entidades (SPEC-S19-B1).
+
+    Los ids inexistentes se ignoran en silencio, que es el comportamiento
+    que ya tenían ambos endpoints antes de extraer este helper.
+    """
+    return list(db.scalars(select(Grupo).where(Grupo.id.in_(grupo_ids))).all())
+
 # --- Gestión de Solicitudes (Audit Log) ---
 
 @router.get("/solicitudes", response_model=list[SolicitudRead])
@@ -86,9 +95,7 @@ def crear_usuario(
     )
 
     if data.grupo_ids:
-        user.grupos = list(
-            db.scalars(select(Grupo).where(Grupo.id.in_(data.grupo_ids))).all()
-        )
+        user.grupos = _resolver_grupos(db, data.grupo_ids)
 
     db.add(user)
     db.commit()
@@ -114,8 +121,7 @@ def actualizar_usuario(
     
     if data.grupo_ids is not None:
         # Actualizar relaciones M:N
-        nuevos_grupos = db.scalars(select(Grupo).where(Grupo.id.in_(data.grupo_ids))).all()
-        user.grupos = list(nuevos_grupos)
+        user.grupos = _resolver_grupos(db, data.grupo_ids)
         
     db.commit()
     db.refresh(user)

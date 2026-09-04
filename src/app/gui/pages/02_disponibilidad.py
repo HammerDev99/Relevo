@@ -21,11 +21,15 @@ def _cargar_configuracion() -> dict[str, Any]:
 
 
 @st.cache_data(ttl=60, show_spinner=False)
-def _cargar_disponibilidad(anio: int, mes: int, usuario_id: int | None) -> list[dict[str, Any]]:
+def _cargar_disponibilidad(
+    anio: int, mes: int, usuario_key: str | None
+) -> list[dict[str, Any]]:
     """SPEC-S18-E1: cachea el mes consultado; navegar atrás no repite la petición.
 
-    `usuario_id` entra en la clave de caché porque la respuesta depende de la
-    sesión (RN5: nombres y `estado_grupo_propio` varían según el usuario).
+    `usuario_key` (el correo de la sesión) entra en la clave de caché porque la
+    respuesta depende del usuario: RN5 hace que `empleados_ausentes` y
+    `estado_grupo_propio` varíen entre sesiones. Sin este parámetro, un usuario
+    podría recibir la respuesta cacheada de otro.
     """
     return DisponibilidadService().consultar(anio, mes)
 
@@ -239,9 +243,11 @@ def show() -> None:
     """, unsafe_allow_html=True)
 
     # --- Obtener Datos ---
-    datos = _cargar_disponibilidad(
-        anio, mes_index, st.session_state.get(session_keys.USER_ID)
-    )
+    # `USER_ID` no se popula en el login (solo IS_AUTHENTICATED, USER_EMAIL,
+    # USER_ROLE y AUTH_TOKEN), por lo que la clave de caché usa el correo.
+    autenticado = bool(st.session_state.get(session_keys.IS_AUTHENTICATED, False))
+    usuario_key = st.session_state.get(session_keys.USER_EMAIL)
+    datos = _cargar_disponibilidad(anio, mes_index, usuario_key)
     if not datos:
         st.warning("No se pudieron cargar los datos de disponibilidad.")
         return
@@ -309,7 +315,9 @@ def show() -> None:
     # SPEC-S18-E2: los dispositivos táctiles no disparan :hover, por lo que el
     # atributo title= del calendario es inaccesible en móvil. Este listado
     # expone la misma información sin depender del puntero.
-    if detalles_mes:
+    # SPEC-S19-D1: solo con sesión. Sin ella, RN5 deja `empleados_ausentes`
+    # vacío y el panel repetiría lo que ya dicen el color y el tooltip.
+    if detalles_mes and autenticado:
         icono = {"DISPONIBLE": "🟢", "OCUPADO": "🟡", "EXCEPCIONAL": "🔴"}
         with st.expander(f"📋 Detalle de días con ausencias ({len(detalles_mes)})"):
             for dia_num, estado_dia, texto in detalles_mes:
