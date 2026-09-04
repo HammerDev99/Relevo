@@ -117,13 +117,19 @@ cat ~/estado_pre_v8.txt
 
 ### 1.4 Registrar la versión desplegada (para comprobar que el deploy surtió efecto)
 
+> **Importante**: `ContainerSpec.Image` devuelve solo el tag (`...:latest`), que **nunca cambia** entre despliegues. Comparar ese valor daría "no cambió" incluso en un deploy exitoso. Hay que registrar el **digest** de la imagen que el contenedor está corriendo.
+
 ```bash
+# Tag (informativo)
 docker service inspect sprintjudicial_relevo-api \
   --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' > ~/imagen_pre_v8.txt
-cat ~/imagen_pre_v8.txt
-```
 
-El `@sha256:...` del final es lo que debe cambiar tras un despliegue real.
+# Digest real de la imagen en ejecución — este es el que debe cambiar
+docker inspect $(docker ps -q -f "name=relevo-api") \
+  --format '{{.Image}}' > ~/digest_pre_v8.txt
+
+cat ~/imagen_pre_v8.txt ~/digest_pre_v8.txt
+```
 
 ---
 
@@ -203,14 +209,21 @@ docker service ls | grep relevo     # ambos deben mostrar 1/1
 
 ### 5.2 El código nuevo está corriendo
 
-La imagen debe haber cambiado respecto a la Fase 1.4:
+El **digest** de la imagen en ejecución debe haber cambiado respecto a la Fase 1.4. Comparar el tag no sirve: con `:latest` es siempre el mismo.
 
 ```bash
-docker service inspect sprintjudicial_relevo-api \
-  --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}'
-diff <(cat ~/imagen_pre_v8.txt) <(docker service inspect sprintjudicial_relevo-api --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}') \
-  && echo "AVISO: la imagen NO cambió — el deploy no surtió efecto"
+DIGEST_POST=$(docker inspect $(docker ps -q -f "name=relevo-api") --format '{{.Image}}')
+echo "pre : $(cat ~/digest_pre_v8.txt)"
+echo "post: ${DIGEST_POST}"
+
+if [ "$(cat ~/digest_pre_v8.txt)" = "${DIGEST_POST}" ]; then
+  echo "AVISO: el digest NO cambió — el deploy no surtió efecto"
+else
+  echo "OK: la imagen en ejecución cambió"
+fi
 ```
+
+Si el digest no cambió con la Opción B, Swarm reutilizó el `:latest` en caché: repetir con `docker service update --image ghcr.io/hammerdev99/relevo:latest --force sprintjudicial_relevo-api`.
 
 ### 5.3 El endpoint nuevo existe
 
@@ -246,6 +259,12 @@ A partir de SPEC-S18-C1 el seed ya no reescribe grupos ni `min_presentes`, así 
 ```bash
 docker service logs sprintjudicial_relevo-api --tail 50
 ```
+
+> **Esta es la prueba decisiva del fix.** El estado capturado en la Fase 1.3 el 2026-09-04 mostraba *drift* real respecto al seed: YESENIA, FLOR y DANIEL estaban en G2/G2/G3, mientras el `empleados_mapping` los tiene en G3/G1/G2. Alguien los reasignó desde el panel de Coordinación.
+>
+> Con el bug anterior, este reinicio los habría devuelto a G3/G1/G2 — pérdida silenciosa. Con SPEC-S18-C1 deben **conservar** G2/G2/G3.
+>
+> Si el `diff` muestra que esos tres volvieron a los valores del seed, el fix no está desplegado: revisar la Fase 5.2 (el digest no cambió).
 
 ### 5.5 Los tres usuarios creados por consola siguen ahí
 
@@ -309,7 +328,7 @@ STAMP=$(date +%Y%m%d_%H%M%S) && mkdir -p ~/backups/relevo
 sqlite3 "$DB" ".backup '/home/sprintadmin/backups/relevo/pre_v8_${STAMP}.db'"
 gzip -c ~/backups/relevo/pre_v8_${STAMP}.db > ~/backups/relevo/pre_v8_${STAMP}.db.gz
 zcat ~/backups/relevo/pre_v8_${STAMP}.db.gz > /tmp/v.db && sqlite3 /tmp/v.db "PRAGMA integrity_check;" && rm /tmp/v.db
-docker service inspect sprintjudicial_relevo-api --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' > ~/imagen_pre_v8.txt
+docker inspect $(docker ps -q -f "name=relevo-api") --format '{{.Image}}' > ~/digest_pre_v8.txt   # digest, no tag
 ```
 
 ```powershell
