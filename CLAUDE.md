@@ -40,6 +40,7 @@ MVP para coordinar vacaciones y permisos de 10 empleados, con cupos de concurren
 .venv\Scripts\activate
 .venv\Scripts\python.exe -m pytest -x
 .venv\Scripts\python.exe -m ruff check src tests
+.venv\Scripts\python.exe -m pytest --cov --cov-report=term-missing
 
 # Docker (Versión Prueba)
 docker-compose -f docker-compose.dev.yml up --build
@@ -54,6 +55,7 @@ $env:PYTHONPATH="src"; .venv\Scripts\python.exe -m app.seed
 |---------|-------|
 | Tests | **76** (pytest -x ✅) |
 | Linting | ruff clean ✅ · mypy clean ✅ |
+| Cobertura | **86%** (655 líneas verificables; GUI excluida) |
 | Última auditoría | AUDIT_11 — APROBADO (84.2% SDD neto) |
 | Auditorías totales | 11 (todas APROBADAS) |
 

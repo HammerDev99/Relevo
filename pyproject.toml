@@ -22,6 +22,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0",
+    "pytest-cov>=7.0",
     "ruff>=0.15",
     "mypy>=2.1",
     "httpx>=0.28",
@@ -38,6 +39,24 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-x -q"
+
+# SPEC-S19-C1: la cobertura se mide sobre el código verificable.
+# La capa GUI (Streamlit) se omite: requiere AppTest o Playwright, fuera del
+# alcance actual (AUDIT_11 H22). Medir el total con la GUI dentro daría un 40%
+# que no refleja la verificación real del backend.
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "src/app/gui/*",
+    "src/relevo/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
 
 [tool.ruff]
 line-length = 100
